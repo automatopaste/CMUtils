@@ -1,0 +1,19 @@
+{
+  "plugins":{
+    "SubsystemCombatManager": "cmu.plugins.SubsystemCombatManager",
+    "Debug": "cmu.plugins.Debug"
+  },
+
+  "cmu_SubsystemToggleKey": "I",
+
+  "cmu_DefaultKeybind1":"H",
+  "cmu_DefaultKeybind2":"J",
+  "cmu_DefaultKeybind3":"N",
+  "cmu_DefaultKeybind4":"M",
+  "cmu_DefaultKeybind5":"K",
+  "cmu_DefaultKeybind6":"L",
+
+  "cmu_GlobalMaxParticles": 10000,
+  "cmu_GlobalMinParticles": 100,
+  "cmu_ForceRendererParticleCapUpdate": true, #disable if getting CPU performance hits
+}

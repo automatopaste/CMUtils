@@ -1,0 +1,3 @@
+Subsystems:
+    -feature-complete scripts that mimic ship systems, but can be applied to ships in any combination
+    -fully custom UI implemented
