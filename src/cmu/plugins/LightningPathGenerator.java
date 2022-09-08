@@ -1,20 +1,6 @@
 package cmu.plugins;
 
-import cmu.CMUtils;
-import cmu.shaders.particles.BaseParticle;
-import cmu.shaders.particles.ComputeFunction;
-import cmu.shaders.particles.SegmentedParticle;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
-import com.fs.starfarer.api.input.InputEventAPI;
-import org.lazywizard.lazylib.VectorUtils;
-import org.lwjgl.util.vector.Vector2f;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
 
 public class LightningPathGenerator extends BaseEveryFrameCombatPlugin {
 //    private final LightningSegmentRenderer renderer;

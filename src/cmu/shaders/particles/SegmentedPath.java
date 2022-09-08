@@ -1,6 +1,7 @@
 package cmu.shaders.particles;
 
 
+import org.lazywizard.lazylib.VectorUtils;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
@@ -11,32 +12,45 @@ import java.util.List;
 /**
  * Stores data necessary for rendering and creating segments
  */
-public class SegmentedParticle extends BaseParticle {
+public class SegmentedPath {
     protected final List<SegmentData> segments;
-    protected final Vector2f[] initialVertices; // first two vertices of path relative to origin point (super.location)
+    protected final Vector2f[] initialVertices; // first two vertices of path relative to origin point
     public float width;
     public final Vector2f start;
+    public int numSegments;
 
-    public SegmentedParticle(Vector2f start, SegmentedParticleParams params) {
-        super(start, params);
-        this.width = params.width;
+    public SegmentedPath(Vector2f start, float width) {
+        this.width = width;
         this.start = start;
 
         segments = new ArrayList<>();
+        numSegments = 0;
         initialVertices = new Vector2f[2];
         initialVertices[0] = new Vector2f(start.x, start.y + width);
         initialVertices[1] = new Vector2f(start.x, start.y - width);
     }
 
-    public static class SegmentedParticleParams extends ParticleParams {
-        public float width = 50f;
-        public float segmentMaxDeviation = 0.3f;
+    public void addSegment(Vector2f to, float angle) {
+        if (numSegments == 0) {
+//            float angle = VectorUtils.getFacing(to);
+            initialVertices[0] = VectorUtils.rotate(initialVertices[0], angle);
+            initialVertices[1] = VectorUtils.rotate(initialVertices[1], angle);
+        }
+
+//        float angle = VectorUtils.getFacing(to);
+        SegmentData segmentData = new SegmentData(to, width, angle);
+        segments.add(segmentData);
+
+        numSegments = segments.size();
     }
 
-    public SegmentData addSegment(Vector2f to) {
-        SegmentData segmentData = new SegmentData(to, width);
-        segments.add(segmentData);
-        return segmentData;
+    public void setFinalSegmentLocation(Vector2f location) {
+        segments.get(numSegments - 1).to.set(location);
+    }
+
+    public void clearSegments() {
+        segments.clear();
+        numSegments = 0;
     }
 
     /**
@@ -76,20 +90,11 @@ public class SegmentedParticle extends BaseParticle {
         public Vector2f to; // relative to previous vertex of path
         public Vector2f[] vertices; // v1, v2
 
-        public SegmentData(Vector2f to, float width) {
+        public SegmentData(Vector2f to, float width, float angle) {
             this.to = to;
             vertices = new Vector2f[] {
-                    new Vector2f(0f, width), new Vector2f(0f, -width)
+                    VectorUtils.rotate(new Vector2f(0f, width), angle), VectorUtils.rotate(new Vector2f(0f, -width), angle)
             };
-        }
-    }
-
-    public static class SegmentedComputeFunction extends ComputeFunction {
-        @Override
-        public void advance(float delta, BaseParticle data) {
-            SegmentedParticle segmentedParticle = (SegmentedParticle) data;
-
-            segmentedParticle.age = 0f;
         }
     }
 }

@@ -2,16 +2,9 @@ package cmu.shaders;
 
 import cmu.CMUtils;
 import cmu.shaders.particles.BaseParticle;
-import com.fs.starfarer.api.combat.CombatEngineLayers;
-import com.fs.starfarer.api.combat.ViewportAPI;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL14;
-import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

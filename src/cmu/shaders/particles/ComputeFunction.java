@@ -3,7 +3,7 @@ package cmu.shaders.particles;
 import org.lwjgl.util.vector.Vector2f;
 
 /**
- * Scripting mechanisms to allow fully customisable particle behaviour
+ * Scripting mechanism to allow fully customisable particle behaviour
  * Could develop this into a GPU-side compute shader for extreme swag (skill issue)
  */
 public abstract class ComputeFunction {

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatEngineLayers;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -17,7 +18,6 @@ import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
 import static org.lwjgl.opengl.GL14.glBlendEquation;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL31.glDrawElementsInstanced;
 
 public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin {
     private int vao;
@@ -80,8 +80,6 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
 
     @Override
     public void render(CombatEngineLayers layer, ViewportAPI viewport) {
-        if (numElements == 0) return;
-
         glBindVertexArray(vao);
         program.bind();
 
@@ -93,12 +91,14 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
         draw(layer, viewport);
 
         // in case subtractive blending enabled
-        glBlendEquation(GL_FUNC_ADD);
+//        glBlendEquation(GL_FUNC_ADD);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
         program.unbind();
-        glDisable(GL_BLEND);
+        glBindVertexArray(0);
+
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     @Override

@@ -10,10 +10,10 @@ out vec4 fColor;
 const mat2 myt = mat2(.12121212, .13131313, -.13131313, .12121212);
 const vec2 mys = vec2(1e4, 1e6);
 
-vec2 rhash(vec2 vCoord) {
-    vCoord *= myt;
-    vCoord *= mys;
-    return fract(fract(vCoord / mys) * vCoord);
+vec2 rhash(vec2 fCoord) {
+    fCoord *= myt;
+    fCoord *= mys;
+    return fract(fract(fCoord / mys) * fCoord);
 }
 
 vec3 hash(vec3 p) {
@@ -38,7 +38,7 @@ float voronoi2d(const in vec2 point) {
 }
 
 void main() {
-    const vec4 modColor = vec4(1.0, 1.0, 1.0, 1.0);
+    const vec4 modColor = vec4(0.2, 0.2, 1.0, 1.0);
 
     vec3 mag = vec3(0.5 - fCoord.y);
     float v = voronoi2d(modColor.xy * 40.0);
@@ -50,12 +50,12 @@ void main() {
 
     const float a = 0.08;
     const float ainv = 1.0 / a;
-    const float b = 0.01;
+    const float b = 0.3;
     const float binv = 1.0 / b;
 
 //    float t = max(ainv * min(age.x - fCoord.x, a), 0.0);
     float t = floor(age.x - fCoord.x + 1.0);
-    vec3 core = vec3(max(binv * min(mag - 0.48, b), 0.0));
+    vec3 core = vec3(max(binv * min(mag - 0.15, b), 0.0));
     float v1 = voronoi2d(vec2(1.0 - fCoord.x, fCoord.y) * 6.0);
     float v2 = voronoi2d(fCoord * 6.0);
     vec3 fringe = mag * v1 * v2;
@@ -63,6 +63,6 @@ void main() {
     vec3 o = core;
     vec3 col = o * t;
 
-    fColor = vec4(col, length(col) * modColor.a);
-    fColor = vec4(1.0, 0.0, 0.0, 0.1);
+
+    fColor = vec4(col, modColor.a);
 }

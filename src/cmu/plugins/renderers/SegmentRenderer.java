@@ -1,9 +1,9 @@
 package cmu.plugins.renderers;
 
-import cmu.shaders.BaseParticleRenderer;
+import cmu.shaders.BaseRenderPlugin;
 import cmu.shaders.ShaderProgram;
 import cmu.shaders.particles.BaseParticle;
-import cmu.shaders.particles.SegmentedParticle;
+import cmu.shaders.particles.SegmentedPath;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineLayers;
 import com.fs.starfarer.api.combat.ViewportAPI;
@@ -20,18 +20,30 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.glBlendEquation;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4;
-import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
-import static org.lwjgl.opengl.GL31.glDrawElementsInstanced;
 import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
-public class SegmentRenderer extends BaseParticleRenderer {
+public class SegmentRenderer extends BaseRenderPlugin {
     private static final String VERT_PATH = "data/shaders/lightning.vert";
     private static final String FRAG_PATH = "data/shaders/lightning.frag";
 
     private FloatBuffer projectionBuffer;
 
+    private FloatBuffer verticesBuffer;
     private FloatBuffer modelViewBuffer;
+
+    private final List<SegmentedPath> toDraw;
+
+    public SegmentRenderer() {
+        toDraw = new ArrayList<>();
+    }
+
+    public void addToFrame(SegmentedPath segmentedPath) {
+        toDraw.add(segmentedPath);
+    }
+
+    public void clear() {
+        toDraw.clear();
+    }
 
     @Override
     protected int[] initBuffers() {
@@ -39,21 +51,8 @@ public class SegmentRenderer extends BaseParticleRenderer {
 
         int index;
 
-        // Vertices buffer
-        final float[] v = new float[] {
-                0f, 0f,
-                1f, 0f,
-                1f, 1f,
-                0f, 0f,
-                0f, 1f,
-                1f, 1f
-        };
-        FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(v.length);
-        verticesBuffer.put(v).flip();
-
         int verticesVBO = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, verticesVBO);
-        glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         final int size = 2;
         glVertexAttribPointer(0, size, GL_FLOAT, false, size * Float.SIZE / Byte.SIZE, 0);
@@ -89,33 +88,47 @@ public class SegmentRenderer extends BaseParticleRenderer {
         Matrix4f view = getViewMatrix(Global.getCombatEngine().getViewport());
         List<Matrix4f[]> pathVertexTransforms = new ArrayList<>();
         int numMatrices = 0;
-        int numElements = 0;
-        for (BaseParticle particle : toDraw) {
-            SegmentedParticle segmentedParticle = (SegmentedParticle) particle;
+        for (SegmentedPath path : toDraw) {
 
-            numElements += segmentedParticle.getSegments().size();
-
-            Matrix4f[] transforms = segmentedParticle.getVertexTransforms(view);
-            numMatrices += (transforms.length * 2) - 4;
+            numMatrices += (path.numSegments + 1) * 2;
+            Matrix4f[] transforms = path.getVertexTransforms(view);
             pathVertexTransforms.add(transforms);
         }
-        this.numElements = numElements;
+        this.numElements = numMatrices;
+
+        // vertices
+        verticesBuffer = BufferUtils.createFloatBuffer(numMatrices * 2);
 
         // model view
         modelViewBuffer = BufferUtils.createFloatBuffer(numMatrices * 16);
 
         for (int j = 0; j < toDraw.size(); j++) {
+            final float[] vertices = new float[] {
+                    0f, 0f,
+                    0f, 1f,
+                    1f, 0f,
+                    1f, 1f
+            };
+
             Matrix4f[] transforms = pathVertexTransforms.get(j);
 
-            for (int i = 0; i < transforms.length - 2; i += 2) {
-                transforms[i].store(modelViewBuffer);
-                transforms[i + 1].store(modelViewBuffer);
-                transforms[i + 2].store(modelViewBuffer);
-                transforms[i + 3].store(modelViewBuffer);
+            int index = 0;
+            for (Matrix4f m : transforms) {
+                m.store(modelViewBuffer);
+
+                index++;
+                if (index == 4) index = 0;
+
+                int index2 = index * 2;
+                new Vector2f(vertices[index2], vertices[index2 + 1]).store(verticesBuffer);
             }
         }
 
+        verticesBuffer.flip();
         modelViewBuffer.flip();
+
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+        glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
         glBufferData(GL_ARRAY_BUFFER, modelViewBuffer, GL_DYNAMIC_DRAW);
@@ -125,12 +138,17 @@ public class SegmentRenderer extends BaseParticleRenderer {
     protected void draw(CombatEngineLayers layer, ViewportAPI viewport) {
         glEnable(GL_BLEND);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         glBlendEquation(blendEquation);
 
-        //glDrawElementsInstanced(GL_TRIANGLES, INDICES_BUFFER, numElements);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, numElements);
+        int first = 0;
+        for (SegmentedPath path : toDraw) {
+            int num = (path.numSegments + 1) * 2;
+            glDrawArrays(GL_TRIANGLE_STRIP, first, num);
+            first += num;
+        }
 
+        verticesBuffer.clear();
         modelViewBuffer.clear();
     }
 
@@ -138,7 +156,9 @@ public class SegmentRenderer extends BaseParticleRenderer {
     public void cleanup() {
         super.cleanup();
 
+        if (verticesBuffer != null) verticesBuffer.clear();
         if (modelViewBuffer != null) modelViewBuffer.clear();
+        toDraw.clear();
     }
 
     @Override

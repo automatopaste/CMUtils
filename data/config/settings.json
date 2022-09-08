@@ -1,7 +1,7 @@
 {
   "plugins":{
     "SubsystemCombatManager": "cmu.plugins.SubsystemCombatManager",
-    "Debug": "cmu.plugins.Debug"
+    "GUIDebug": "cmu.plugins.GUIDebug"
   },
 
   "cmu_SubsystemToggleKey": "I",

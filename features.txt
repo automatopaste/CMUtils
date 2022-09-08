@@ -1,3 +1,19 @@
+Shaders:
+    -Sprite particle shader
+    -Implosion effect shader
+    -Segmented line shader program renderer for trails etc.
+        -Additional helper class for managing particle instances
 Subsystems:
-    -feature-complete scripts that mimic ship systems, but can be applied to ships in any combination
-    -fully custom UI implemented
+    -Feature-complete scripts that mimic ship systems
+    -Allows for arbitrary script execution based on specific ship
+    -Can be applied in any combination
+    -Automatic hotkey mapping
+    -Fully custom UI implemented
+        -Hooks for rendering own UI without visual overlaps
+Debug GUI:
+    -Display data from any script with global methods
+    -Requires data to be set per-frame, smooth fadeout over 1 second
+    -Uses simple keymap system to maintain text in list
+    -Flexible graphing tool
+    -Dynamic display panel adjustment with '[' ']' keys
+    -Support for custom renderer containers
