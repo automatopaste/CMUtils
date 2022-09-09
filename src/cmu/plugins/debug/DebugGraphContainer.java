@@ -50,7 +50,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
     @Override
     public float render(Vector2f input, LazyFont.DrawableString toDraw, Color color, float width) {
         Vector2f loc = new Vector2f(input);
-        float graphWidth = width - 25f;
+        float graphWidth = width - 50f;
         float graphHeight = height;
 
         toDraw.setBaseColor(color);
@@ -109,6 +109,8 @@ public class DebugGraphContainer implements BaseDebugContainer {
 
         glEnd();
 
+        graphHeight += toDraw.getHeight();
+
         return graphHeight;
     }
 
@@ -121,7 +123,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
 
         @Override
         public boolean add(E e) {
-            if(size() >= capacity) removeFirst();
+            if (size() >= capacity) removeFirst();
             return super.add(e);
         }
     }

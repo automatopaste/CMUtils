@@ -43,9 +43,9 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
 
     private Map<Class<?>, Map<String, BaseDebugContainer>> debugData;
 
-    private DebugGraphContainer graphContainer;
-    private ShipAPI ship;
-    private final IntervalUtil interval = new IntervalUtil(1f / 60f, 1f / 60f);
+//    private DebugGraphContainer graphContainer;
+//    private ShipAPI ship;
+//    private final IntervalUtil interval = new IntervalUtil(1f / 60f, 1f / 60f);
 
     @Override
     public void init(CombatEngineAPI engine) {
@@ -66,22 +66,22 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
 
     @Override
     public void advance(float amount, List<InputEventAPI> events) {
-        if (graphContainer != null) {
-            putContainer(GUIDebug.class, "debug", graphContainer);
-
-            if (!Global.getCombatEngine().isPaused()) {
-                interval.advance(amount);
-                if (interval.intervalElapsed()) {
-                    graphContainer.increment(ship.getVelocity().length());
-                }
-            }
-        } else {
-            List<ShipAPI> ships = Global.getCombatEngine().getShips();
-            if (!ships.isEmpty()) {
-                ship = ships.get(0);
-                graphContainer = new DebugGraphContainer("SHIP VELOCITY", ship.getMaxSpeedWithoutBoost() + ship.getMutableStats().getZeroFluxSpeedBoost().getModifiedValue(), 60, 100f);
-            }
-        }
+//        if (graphContainer != null) {
+//            putContainer(GUIDebug.class, "debug", graphContainer);
+//
+//            if (!Global.getCombatEngine().isPaused()) {
+//                interval.advance(amount);
+//                if (interval.intervalElapsed()) {
+//                    graphContainer.increment(ship.getVelocity().length());
+//                }
+//            }
+//        } else {
+//            List<ShipAPI> ships = Global.getCombatEngine().getShips();
+//            if (!ships.isEmpty()) {
+//                ship = ships.get(0);
+//                graphContainer = new DebugGraphContainer("SHIP VELOCITY", ship.getMaxSpeedWithoutBoost() + ship.getMutableStats().getZeroFluxSpeedBoost().getModifiedValue(), 60, 100f);
+//            }
+//        }
 
         List<Class<?>> classes = new ArrayList<>();
 
