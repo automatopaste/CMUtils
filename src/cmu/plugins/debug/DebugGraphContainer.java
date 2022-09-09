@@ -4,8 +4,8 @@ import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
+import java.util.List;
 
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -30,7 +30,9 @@ public class DebugGraphContainer implements BaseDebugContainer {
     }
 
     public void increment(float next) {
-        data.add(next);
+        synchronized (data) {
+            data.add(next);
+        }
     }
 
     @Override
@@ -97,7 +99,12 @@ public class DebugGraphContainer implements BaseDebugContainer {
         l.y -= graphHeight;
 
         float y = l.y;
-        for (float f : data) {
+        List<Float> offsets = new ArrayList<>();
+        synchronized (data) {
+            Collections.copy(offsets, (LinkedList<Float>) data);
+        }
+
+        for (float f : offsets) {
             float h = f / max;
             h *= graphHeight;
             l.y = y + h;
