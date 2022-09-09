@@ -99,9 +99,9 @@ public class DebugGraphContainer implements BaseDebugContainer {
         l.y -= graphHeight;
 
         float y = l.y;
-        List<Float> offsets = new ArrayList<>();
+        List<Float> offsets;
         synchronized (data) {
-            Collections.copy(offsets, (LinkedList<Float>) data);
+            offsets = new ArrayList<>(data);
         }
 
         for (float f : offsets) {
