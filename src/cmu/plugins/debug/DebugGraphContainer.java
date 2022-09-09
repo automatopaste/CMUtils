@@ -1,5 +1,6 @@
 package cmu.plugins.debug;
 
+import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -13,10 +14,11 @@ import static org.lwjgl.opengl.GL11.*;
 public class DebugGraphContainer implements BaseDebugContainer {
     private final Queue<Float> data;
     private final String label;
-    private final float max;
     private final int capacity;
     private final float height;
+    private final boolean autoFormat;
 
+    private float max;
     private boolean expired;
 
     public DebugGraphContainer(String label, float max, int capacity, float height) {
@@ -25,6 +27,18 @@ public class DebugGraphContainer implements BaseDebugContainer {
         this.capacity = capacity;
         this.height = height;
 
+        data = new CircularQueue<>(120);
+        expired = false;
+        autoFormat = false;
+    }
+
+    public DebugGraphContainer(String label, int capacity, float height) {
+        this.label = label;
+        this.max = 0f;
+        this.capacity = capacity;
+        this.height = height;
+
+        autoFormat = true;
         data = new CircularQueue<>(120);
         expired = false;
     }
@@ -82,6 +96,19 @@ public class DebugGraphContainer implements BaseDebugContainer {
 
         glEnd();
 
+        List<Float> offsets;
+        synchronized (data) {
+            offsets = new ArrayList<>(data);
+        }
+
+        if (autoFormat) {
+            max = Float.MIN_VALUE;
+
+            for (float f : offsets) {
+                if (f > max) max = f;
+            }
+        }
+
         // text
         toDraw.setBaseColor(color.darker());
         toDraw.setText(max + "");
@@ -99,10 +126,6 @@ public class DebugGraphContainer implements BaseDebugContainer {
         l.y -= graphHeight;
 
         float y = l.y;
-        List<Float> offsets;
-        synchronized (data) {
-            offsets = new ArrayList<>(data);
-        }
 
         for (float f : offsets) {
             float h = f / max;
