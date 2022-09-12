@@ -110,7 +110,12 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
         Vector2f loc = Vector2f.add(size, PADDING, new Vector2f());
         loc.x -= width;
 
-        TODRAW14.setBaseColor(GREENCOLOR);
+        render(new Vector2f(loc.x + 1f, loc.y - 1f), Color.BLACK);
+        render(loc, GREENCOLOR);
+    }
+
+    private void render(Vector2f loc, Color color) {
+        TODRAW14.setBaseColor(color);
         TODRAW14.setText("COMBAT MISC UTILS DEBUG");
         TODRAW14.draw(loc.x - 10f, loc.y + 20f);
         TODRAW14.setMaxWidth(600f);
@@ -118,7 +123,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
         TODRAW14.setMaxWidth(width);
         float textHeight = 0f;
         if (debugData.isEmpty()) {
-            TODRAW14.setBaseColor(GREENCOLOR.darker());
+            TODRAW14.setBaseColor(color.darker());
             TODRAW14.setText("NO DATA");
             TODRAW14.draw(loc.x, loc.y);
         } else {
@@ -126,7 +131,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
                 Map<String, BaseDebugContainer> category = debugData.get(clazz);
 
                 TODRAW14.setText(clazz.getName());
-                TODRAW14.setBaseColor(GREENCOLOR.darker());
+                TODRAW14.setBaseColor(color.darker());
                 TODRAW14.draw(loc);
 
                 float h = loc.y;
@@ -137,7 +142,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
                 for (String s : category.keySet()) {
                     BaseDebugContainer container = category.get(s);
 
-                    float height = container.render(loc, TODRAW14, GREENCOLOR, width);
+                    float height = container.render(loc, TODRAW14, color, width);
 
                     loc.y -= V_PAD + height;
                 }
@@ -156,7 +161,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
 
         glBegin(GL_LINE_STRIP);
         glLineWidth(1f);
-        glColor(GREENCOLOR);
+        glColor(color);
 
         loc.y -= textHeight + 10f;
         glVertex2f(loc.x, loc.y);
