@@ -1,12 +1,13 @@
 package cmu.plugins.debug;
 
-import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -112,7 +113,9 @@ public class DebugGraphContainer implements BaseDebugContainer {
         // text
         toDraw.setBaseColor(color.darker());
         toDraw.setText(max + "");
-        toDraw.draw(loc);
+        Vector2f textLoc = new Vector2f(loc);
+        textLoc.x -= toDraw.getWidth() - 2f;
+        toDraw.draw(textLoc);
 
         // graph
         glBegin(GL_LINE_STRIP);
