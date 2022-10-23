@@ -7,15 +7,52 @@ import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 public class ShaderProgram {
     int programID;
 
-    int vertexShaderID;
-    int fragmentShaderID;
-    int geometryShaderID;
+    int vertexShaderID = -1;
+    int fragmentShaderID = -1;
+    int geometryShaderID = -1;
 
     public ShaderProgram() {
         programID = glCreateProgram();
     }
 
-    public ShaderProgram createVertexShader(String shaderCode) {
+    public void createShader(String source, int shaderType) {
+        int shaderID = glCreateShader(shaderType);
+
+        switch (shaderType) {
+            case GL_VERTEX_SHADER:
+                vertexShaderID = shaderID;
+                break;
+            case GL_GEOMETRY_SHADER:
+                fragmentShaderID = shaderID;
+                break;
+            case GL_FRAGMENT_SHADER:
+                geometryShaderID = shaderID;
+                break;
+            default:
+                throw new NullPointerException("bad");
+        }
+
+//        for (int i = 0; i < constNames.length; i++) {
+//            String c = constNames[i];
+//            float v = constValues[i];
+//
+//            source.indexOf(c)
+//
+//        }
+
+        // Compile the shader
+        glCompileShader(shaderID);
+
+        // Check for errors
+        if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == GL_FALSE)
+            throw new RuntimeException("Error creating shader\n"
+                    + glGetShaderInfoLog(shaderID, glGetShaderi(shaderID, GL_INFO_LOG_LENGTH)));
+
+        // Attach the shader
+        glAttachShader(programID, shaderID);
+    }
+
+    public void createVertexShader(String shaderCode) {
         // Create the shader and set the source
         vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShaderID, shaderCode);
@@ -31,10 +68,9 @@ public class ShaderProgram {
         // Attach the shader
         glAttachShader(programID, vertexShaderID);
 
-        return this;
     }
 
-    public ShaderProgram createFragmentShader(String shaderCode) {
+    public void createFragmentShader(String shaderCode) {
         // Create the shader and set the source
         fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShaderID, shaderCode);
@@ -50,7 +86,6 @@ public class ShaderProgram {
         // Attach the shader
         glAttachShader(programID, fragmentShaderID);
 
-        return this;
     }
 
     public ShaderProgram createGeometryShader(String shaderCode) {
@@ -72,13 +107,12 @@ public class ShaderProgram {
         return this;
     }
 
-    public ShaderProgram link() {
+    public void link() {
         glLinkProgram(programID);
+
         if (glGetProgrami(programID, GL_LINK_STATUS) == GL_FALSE) {
             throw new RuntimeException("Unable to link shader program: " + glGetProgramInfoLog(programID, 1024));
         }
-
-        return this;
     }
 
     public void bind() {
@@ -94,12 +128,14 @@ public class ShaderProgram {
         unbind();
 
         // Detach the shaders
-        glDetachShader(programID, vertexShaderID);
-        glDetachShader(programID, fragmentShaderID);
+        if (vertexShaderID != -1) glDetachShader(programID, vertexShaderID);
+        if (geometryShaderID != -1) glDetachShader(programID, geometryShaderID);
+        if (fragmentShaderID != -1) glDetachShader(programID, fragmentShaderID);
 
         // Delete the shaders
-        glDeleteShader(vertexShaderID);
-        glDeleteShader(fragmentShaderID);
+        if (vertexShaderID != -1) glDeleteShader(vertexShaderID);
+        if (geometryShaderID != -1) glDeleteShader(geometryShaderID);
+        if (fragmentShaderID != -1) glDeleteShader(fragmentShaderID);
 
         // Delete the program
         glDeleteProgram(programID);

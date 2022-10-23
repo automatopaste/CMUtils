@@ -90,10 +90,6 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
 
         draw(layer, viewport);
 
-        // in case subtractive blending enabled
-//        glBlendEquation(GL_FUNC_ADD);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
         program.unbind();
         glBindVertexArray(0);
 

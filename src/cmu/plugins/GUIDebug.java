@@ -38,16 +38,18 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
     private static final float P_PAD = 4f;
     private static final float T_PAD = 20f;
 
-    private Map<Class<?>, Map<String, BaseDebugContainer>> debugData;
+    private final Map<Class<?>, Map<String, BaseDebugContainer>> debugData;
 
 //    private DebugGraphContainer graphContainer;
 //    private ShipAPI ship;
 //    private final IntervalUtil interval = new IntervalUtil(1f / 60f, 1f / 60f);
 
+    public GUIDebug() {
+        debugData = new HashMap<>();
+    }
+
     @Override
     public void init(CombatEngineAPI engine) {
-        debugData = new HashMap<>();
-
         size = new Vector2f(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight());
 
         GREENCOLOR = Global.getSettings().getColor("textFriendColor");
@@ -127,30 +129,32 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
             TODRAW14.setText("NO DATA");
             TODRAW14.draw(loc.x, loc.y);
         } else {
-            for (Class<?> clazz : debugData.keySet()) {
-                Map<String, BaseDebugContainer> category = debugData.get(clazz);
+            synchronized (debugData) {
+                for (Class<?> clazz : debugData.keySet()) {
+                    Map<String, BaseDebugContainer> category = debugData.get(clazz);
 
-                TODRAW14.setText(clazz.getName());
-                TODRAW14.setBaseColor(color.darker());
-                TODRAW14.draw(loc);
+                    TODRAW14.setText(clazz.getName());
+                    TODRAW14.setBaseColor(color.darker());
+                    TODRAW14.draw(loc);
 
-                float h = loc.y;
+                    float h = loc.y;
 
-                loc.x += T_PAD;
-                loc.y -= TODRAW14.getHeight() + V_PAD;
+                    loc.x += T_PAD;
+                    loc.y -= TODRAW14.getHeight() + V_PAD;
 
-                for (String s : category.keySet()) {
-                    BaseDebugContainer container = category.get(s);
+                    for (String s : category.keySet()) {
+                        BaseDebugContainer container = category.get(s);
 
-                    float height = container.render(loc, TODRAW14, color, width);
+                        float height = container.render(loc, TODRAW14, color, width);
 
-                    loc.y -= V_PAD + height;
+                        loc.y -= V_PAD + height;
+                    }
+
+                    loc.x -= T_PAD;
+                    loc.y -= P_PAD;
+
+                    textHeight += h - loc.y;
                 }
-
-                loc.x -= T_PAD;
-                loc.y -= P_PAD;
-
-                textHeight += h - loc.y;
             }
         }
 

@@ -1,8 +1,17 @@
 Shaders:
-    -Sprite particle shader
+    -High performance pooled particle renderers with full control over particle behaviour
+        -Simple to implement and debug
+        -Use default or custom compute methods to determine particle advance behaviour per frame
+            -Use to change alpha, shape, colour etc. over time
+        -Particle count cap settings to stop bad implementations overwhelming others
+        -Uses global manager to prevent going over particle cap
+    -Sprite renderer
     -Implosion effect shader
     -Segmented line shader program renderer for trails etc.
-        -Additional helper class for managing particle instances
+        -Render sprites or custom shader programs along segments
+        -Additional helper class for managing trail instances
+    -Supports custom shader plugins that extend BaseRenderPlugin
+    -Requires OpenGL 3.3 support
 Subsystems:
     -Feature-complete scripts that mimic ship systems
     -Allows for arbitrary script execution based on specific ship

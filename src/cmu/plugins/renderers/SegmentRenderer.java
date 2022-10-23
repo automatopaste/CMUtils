@@ -2,7 +2,6 @@ package cmu.plugins.renderers;
 
 import cmu.shaders.BaseRenderPlugin;
 import cmu.shaders.ShaderProgram;
-import cmu.shaders.particles.BaseParticle;
 import cmu.shaders.particles.SegmentedPath;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineLayers;
