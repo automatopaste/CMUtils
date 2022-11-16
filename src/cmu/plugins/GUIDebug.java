@@ -7,6 +7,7 @@ import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import org.lazywizard.lazylib.MathUtils;
@@ -29,7 +30,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
     public Color GREENCOLOR;
 
     private Vector2f size;
-    private static final Vector2f PADDING = new Vector2f(-10f, -170f);
+    private static final Vector2f PADDING = new Vector2f(-10f, -175f);
     private float width = 300f;
     private static final float W_MAX = 600f;
     private static final float W_MIN = 200f;
@@ -39,6 +40,8 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
     private static final float T_PAD = 20f;
 
     private final Map<Class<?>, Map<String, BaseDebugContainer>> debugData;
+
+    private boolean active = true;
 
 //    private DebugGraphContainer graphContainer;
 //    private ShipAPI ship;
@@ -109,6 +112,8 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
         if (engine.isUIShowingDialog()) return;
         if (engine.getCombatUI() == null || engine.getCombatUI().isShowingCommandUI() || !engine.isUIShowingHUD()) return;
 
+        if (!active) return;
+
         Vector2f loc = Vector2f.add(size, PADDING, new Vector2f());
         loc.x -= width;
 
@@ -120,6 +125,9 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
         TODRAW14.setBaseColor(color);
         TODRAW14.setText("COMBAT MISC UTILS DEBUG");
         TODRAW14.draw(loc.x - 10f, loc.y + 20f);
+        float w = TODRAW14.getWidth();
+        TODRAW14.setText("TOGGLE WITH '\\'");
+        TODRAW14.draw(loc.x - 10f + (w - TODRAW14.getWidth()), loc.y + 32f);
         TODRAW14.setMaxWidth(600f);
 
         TODRAW14.setMaxWidth(width);
@@ -210,6 +218,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
         for (InputEventAPI event : events) {
             if (event.isKeyboardEvent() && event.getEventChar() == '[') width = MathUtils.clamp(width + W_INC, W_MIN, W_MAX);
             if (event.isKeyboardEvent() && event.getEventChar() == ']') width = MathUtils.clamp(width - W_INC, W_MIN, W_MAX);
+            if (event.isKeyboardEvent() && event.getEventChar() == '\\') active = !active;
         }
     }
 

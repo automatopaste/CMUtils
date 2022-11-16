@@ -91,7 +91,6 @@ public interface Subsystem {
      */
     String getActivationSoundId();
 
-    //todo
     //String getStatusText(int index);
 
     //String getStatusIconFilepath(int index);

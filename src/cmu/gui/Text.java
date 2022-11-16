@@ -4,16 +4,13 @@ import org.lazywizard.lazylib.ui.LazyFont;
 
 import java.awt.*;
 
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glEnable;
-
 public class Text implements Element {
 
-    private final StringExecute execute;
+    private final Execute<String> execute;
     private final LazyFont.DrawableString draw;
     private final TextParams params;
 
-    public Text(StringExecute execute, LazyFont.DrawableString draw, TextParams params) {
+    public Text(Execute<String> execute, LazyFont.DrawableString draw, TextParams params) {
         this.execute = execute;
         this.draw = draw;
         this.params = params;

@@ -1,8 +1,8 @@
 package cmu.plugins;
 
 import cmu.gui.Element;
+import cmu.gui.Execute;
 import cmu.gui.Panel;
-import cmu.gui.StringExecute;
 import cmu.gui.Text;
 import cmu.misc.Clock;
 import com.fs.starfarer.api.Global;
@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.combat.CombatEngine;
 import org.lazywizard.lazylib.ui.FontException;
 import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.input.Keyboard;
@@ -23,8 +22,8 @@ import org.lwjgl.util.vector.Vector2f;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
@@ -81,7 +80,7 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
 
         Text.TextParams tp = new Text.TextParams();
         tp.color = Color.RED;
-        Text text = new Text(new StringExecute() {
+        Text text = new Text(new Execute<String>() {
             @Override
             public String get() {
                 return "SOME TEXT";
