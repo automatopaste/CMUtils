@@ -16,6 +16,8 @@ public abstract class DroneSubsystem extends BaseSubsystem implements DroneSyste
         super.init(ship);
 
         forgeTracker = initDroneSystem(ship);
+        Global.getCombatEngine().addPlugin(forgeTracker);
+
         SystemData.putDroneSystem(this, ship, Global.getCombatEngine());
     }
 
@@ -32,13 +34,6 @@ public abstract class DroneSubsystem extends BaseSubsystem implements DroneSyste
     @Override
     public void onActivation() {
         cycleDroneOrders();
-    }
-
-    @Override
-    public void advance(float amount) {
-        super.advance(amount);
-
-        forgeTracker.advance(amount);
     }
 
     @Override
@@ -85,5 +80,10 @@ public abstract class DroneSubsystem extends BaseSubsystem implements DroneSyste
     @Override
     public ForgeTracker getForgeTracker() {
         return forgeTracker;
+    }
+
+    @Override
+    public void droneSpawnCallback(ShipAPI drone, ForgeTracker forgeTracker, DroneSystem droneSystem) {
+
     }
 }

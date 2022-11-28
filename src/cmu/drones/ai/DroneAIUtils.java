@@ -4,86 +4,19 @@ import cmu.CMUtils;
 import cmu.drones.systems.DroneSystem;
 import cmu.drones.systems.SystemData;
 import cmu.misc.MiscUtils;
-import cmu.plugins.GUIDebug;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.*;
-import com.fs.starfarer.api.util.IntervalUtil;
 import org.lazywizard.lazylib.CollisionUtils;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.VectorUtils;
 import org.lazywizard.lazylib.combat.AIUtils;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
 public class DroneAIUtils {
-
-    public static void move(ShipAPI drone, ShipAPI mothership, Vector2f movementTargetLocation) {
-        //The bones of the movement AI are below, all it needs is a target vector location to move to
-
-        //account for ship velocity
-        Vector2f.add(movementTargetLocation, (Vector2f) new Vector2f(mothership.getVelocity()).scale(Global.getCombatEngine().getElapsedInLastFrame()), movementTargetLocation);
-
-        //GET USEFUL VALUES
-        float angleFromDroneToTargetLocation = VectorUtils.getAngle(drone.getLocation(), movementTargetLocation); //ABSOLUTE 360 ANGLE
-
-        float droneVelocityAngle = VectorUtils.getFacing(drone.getVelocity()); //ABSOLUTE 360 ANGLE
-
-        float rotationFromFacingToLocationAngle = MathUtils.getShortestRotation(drone.getFacing(), angleFromDroneToTargetLocation); //ROTATION ANGLE
-        float rotationFromVelocityToLocationAngle = MathUtils.getShortestRotation(droneVelocityAngle, angleFromDroneToTargetLocation); //ROTATION ANGLE
-
-        float distanceToTargetLocation = MathUtils.getDistance(drone.getLocation(), movementTargetLocation); //DISTANCE
-
-        //damping scaling based on ship speed (function y = -x + 2 where x is 0->1)
-        //float damping = (-drone.getLaunchingShip().getVelocity().length() / drone.getLaunchingShip().getMaxSpeedWithoutBoost()) + 2f;
-
-        //FIND DISTANCE THAT CAN BE DECELERATED FROM CURRENT SPEED TO ZERO s = v^2 / 2a
-        float speedSquared = drone.getVelocity().lengthSquared();
-        float decelerationDistance = speedSquared / (2 * drone.getDeceleration());
-
-        //DO LARGE MOVEMENT IF OVER DISTANCE THRESHOLD
-        if (distanceToTargetLocation >= decelerationDistance) {
-            rotationFromFacingToLocationAngle = Math.round(rotationFromFacingToLocationAngle);
-
-            //COURSE CORRECTION
-            drone.getVelocity().set(VectorUtils.rotate(drone.getVelocity(), rotationFromVelocityToLocationAngle * 0.5f));
-
-            //accelerate forwards or backwards
-            if (90f > rotationFromFacingToLocationAngle && rotationFromFacingToLocationAngle > -90f
-            ) { //between 90 and -90 is an acute angle therefore in front
-                drone.giveCommand(ShipCommand.ACCELERATE, null, 0);
-            } else if ((180f >= rotationFromFacingToLocationAngle && rotationFromFacingToLocationAngle > 90f) || (-90f > rotationFromFacingToLocationAngle && rotationFromFacingToLocationAngle >= -180f)
-            ) { //falls between 90 to 180 or -90 to -180, which should be obtuse and thus relatively behind
-                drone.giveCommand(ShipCommand.ACCELERATE_BACKWARDS, null, 0);
-            }
-
-            //strafe left or right
-            if (180f > rotationFromFacingToLocationAngle && rotationFromFacingToLocationAngle > 0f) { //between 0 and 180 (i.e. left)
-                drone.giveCommand(ShipCommand.STRAFE_LEFT, null, 0);
-            } else if (0f > rotationFromFacingToLocationAngle && rotationFromFacingToLocationAngle > -180f) { //between 0 and -180 (i.e. right)
-                drone.giveCommand(ShipCommand.STRAFE_RIGHT, null, 0);
-            }
-        } else {
-            //COURSE CORRECTION
-            drone.getVelocity().set(VectorUtils.rotate(drone.getVelocity(), rotationFromVelocityToLocationAngle));
-        }
-
-        //DECELERATE IF IN THRESHOLD DISTANCE OF TARGET
-        if (distanceToTargetLocation <= decelerationDistance) {
-            drone.giveCommand(ShipCommand.DECELERATE, null, 0);
-
-            float frac = distanceToTargetLocation / decelerationDistance;
-            frac = (float) Math.sqrt(frac);
-            //drone.getVelocity().set((Vector2f) drone.getVelocity().scale(frac));
-
-            if (frac <= 0.25f) {
-                drone.getVelocity().set(mothership.getVelocity());
-            } else {
-                drone.getVelocity().set((Vector2f) drone.getVelocity().scale(frac));
-            }
-        }
-    }
 
     /**
      * Perfect movement algorithm using a PD controller damping system. Integral is not necessary because inherent
@@ -92,7 +25,7 @@ public class DroneAIUtils {
      * @param drone drone that is moving
      * @param control controller object with defined values
      */
-    public static void move2(Vector2f dest, ShipAPI drone, PDControl control) {
+    public static void move(Vector2f dest, ShipAPI drone, PDControl control) {
         Vector2f d = Vector2f.sub(dest, drone.getLocation(), new Vector2f());
         VectorUtils.rotate(d, 90f - drone.getFacing());
 
@@ -115,99 +48,48 @@ public class DroneAIUtils {
      * Values should be tweaked based on the acceleration stats of the controlled drone.
      */
     public abstract static class PDControl {
-        public abstract float getKpX();
-        public abstract float getKdX();
-        public abstract float getKpY();
-        public abstract float getKdY();
+        public abstract float getKp();
+        public abstract float getKd();
+
+        public abstract float getRp();
+
+        public abstract float getRd();
+
+        public static final float STRAFE_RATIO = 0.5f;
+
         public float lx = 0f;
         public float ly = 0f;
-    }
+        public float lr = 0f;
 
-    public static void snapToLocation(ShipAPI drone, Vector2f target) {
-        drone.getLocation().set(target);
-    }
+        public float getKpX() {
+            return getKp();
+        }
 
-    public static void rotateToTarget(ShipAPI mothership, ShipAPI drone, Vector2f targetedLocation) {
-        CombatEngineAPI engine = Global.getCombatEngine();
-        //float droneFacing = drone.getFacing();
+        public float getKdX() {
+            return getKd();
+        }
 
-        //FIND ANGLE THAT CAN BE DECELERATED FROM CURRENT ANGULAR VELOCITY TO ZERO theta = v^2 / 2 (not actually used atm)
-        //float decelerationAngle = (float) (Math.pow(drone.getAngularVelocity(), 2) / (2 * drone.getTurnDeceleration()));
+        public float getKpY() {
+            return getKp() * STRAFE_RATIO;
+        }
 
-
-        //point at target, if that doesn't exist then point in direction of mothership facing
-        //float rotationAngleDelta;
-        if (targetedLocation != null) {
-            //GET ABSOLUTE ANGLE FROM DRONE TO TARGETED LOCATION
-            Vector2f droneToTargetedLocDir = VectorUtils.getDirectionalVector(drone.getLocation(), targetedLocation);
-            float droneAngleToTargetedLoc = VectorUtils.getFacing(droneToTargetedLocDir); //ABSOLUTE 360 ANGLE
-
-            rotateToFacing(drone, droneAngleToTargetedLoc, engine);
-        } else {
-            rotateToFacing(drone, mothership.getFacing(), engine);
+        public float getKdY() {
+            return getKd() * STRAFE_RATIO;
         }
     }
 
-    public static void rotateToFacing(ShipAPI drone, float absoluteFacingTargetAngle, CombatEngineAPI engine) {
-        float droneFacing = drone.getFacing();
-        float angvel = drone.getAngularVelocity();
-        float rotationAngleDelta = MathUtils.getShortestRotation(droneFacing, absoluteFacingTargetAngle);
+    public static void rotate(float target, ShipAPI drone, PDControl control) {
+        float er = target - drone.getFacing();
+        if (er > 180f) er -= 360f;
+        else if (er < -180f) er += 360f;
 
-        //FIND ANGLE THAT CAN BE DECELERATED FROM CURRENT ANGULAR VELOCITY TO ZERO theta = v^2 / 2
-        float decelerationAngleAbs = (angvel * angvel) / (2 * drone.getTurnDeceleration());
+        float rer = (er - control.lr) / Global.getCombatEngine().getElapsedInLastFrame();
+        float ar = control.getRp() * er + control.getRd() * rer;
+        if (ar > 0f) drone.giveCommand(ShipCommand.TURN_LEFT, null, 0);
+        else drone.giveCommand(ShipCommand.TURN_RIGHT, null, 0);
+        control.lr = er;
 
-        float accel = 0f;
-        if (rotationAngleDelta < 0f) {
-            if (-decelerationAngleAbs < rotationAngleDelta) {
-                accel += drone.getTurnDeceleration() * engine.getElapsedInLastFrame();
-            } else {
-                accel -= drone.getTurnAcceleration() * engine.getElapsedInLastFrame();
-            }
-        } else if (rotationAngleDelta > 0f) {
-            if (decelerationAngleAbs > rotationAngleDelta) {
-                accel -= drone.getTurnDeceleration() * engine.getElapsedInLastFrame();
-            } else {
-                accel += drone.getTurnAcceleration() * engine.getElapsedInLastFrame();
-            }
-        }
-
-        angvel += accel;
-
-        MathUtils.clamp(angvel, -drone.getMaxTurnRate(), drone.getMaxTurnRate());
-
-        drone.setAngularVelocity(angvel);
-    }
-
-    public static void rotateToFacingJerky(ShipAPI drone, float targetAngle) {
-        float delta = MathUtils.getShortestRotation(drone.getFacing(), targetAngle);
-        drone.setFacing(drone.getFacing() + delta * 0.1f);
-    }
-
-    public static void attemptToLand(ShipAPI mothership, ShipAPI drone, float amount, IntervalUtil delayBeforeLandingTracker, CombatEngineAPI engine) {
-        delayBeforeLandingTracker.advance(amount);
-        boolean isPlayerShip = mothership.equals(engine.getPlayerShip());
-
-        if (drone.isLanding()) {
-            delayBeforeLandingTracker.setElapsed(0);
-            if (isPlayerShip) {
-                engine.maintainStatusForPlayerShip("PSE_STATUS_KEY_DRONE_LANDING_STATE", "graphics/icons/hullsys/drone_pd_high.png", "LANDING STATUS", "LANDING... ", false);
-            }
-        } else {
-            float round = Math.round((delayBeforeLandingTracker.getIntervalDuration() - delayBeforeLandingTracker.getElapsed()) * 100) / 100f;
-            if (isPlayerShip) {
-                engine.maintainStatusForPlayerShip("PSE_STATUS_KEY_DRONE_LANDING_STATE", "graphics/icons/hullsys/drone_pd_high.png", "LANDING STATUS", "LANDING IN " + round, false);
-            }
-        }
-
-        if (delayBeforeLandingTracker.intervalElapsed()) {
-            drone.beginLandingAnimation(mothership);
-        }
-    }
-
-    public static void attemptToLandAsExtra(ShipAPI mothership, ShipAPI drone) {
-        if (!drone.isLanding() && MathUtils.getDistance(drone, mothership) < mothership.getCollisionRadius()) {
-            drone.beginLandingAnimation(mothership);
-        }
+        //CMUtils.getGuiDebug().putText(DroneAIUtils.class, "rotation", er + "");
     }
 
     public static CombatEntityAPI getEnemyTarget(ShipAPI mothership, ShipAPI drone, float weaponRange, boolean ignoreMissiles, boolean ignoreFighters, boolean ignoreShips, float targetingArcDeviation) {
@@ -225,7 +107,7 @@ public class DroneAIUtils {
                     continue;
                 }
 
-                float distance = MathUtils.getDistance(missile, drone);
+                float distance = MathUtils.getDistanceSquared(missile, drone);
                 if (distance < tracker) {
                     tracker = distance;
                     droneTargetMissile = missile;
@@ -251,7 +133,7 @@ public class DroneAIUtils {
                     float relAngle = VectorUtils.getFacing(Vector2f.sub(enemyShip.getLocation(), drone.getLocation(), new Vector2f()));
                     for (ShipAPI ally : AIUtils.getNearbyAllies(drone, weaponRange)) {
                         if (MiscUtils.isEntityInArc(ally, drone.getLocation(), relAngle, 20f)) {
-                            if (MathUtils.getDistance(enemyShip, drone) > MathUtils.getDistance(ally, drone)) {
+                            if (MathUtils.getDistanceSquared(enemyShip, drone) > MathUtils.getDistanceSquared(ally, drone)) {
                                 areFriendliesInFiringArc = true;
                                 break;
                             }
@@ -266,7 +148,7 @@ public class DroneAIUtils {
                         continue;
                     }
 
-                    float distance = MathUtils.getDistance(enemyShip, drone);
+                    float distance = MathUtils.getDistanceSquared(enemyShip, drone);
                     if (distance < tracker) {
                         tracker = distance;
                         droneTargetShip = enemyShip;
@@ -289,7 +171,7 @@ public class DroneAIUtils {
                     continue;
                 }
 
-                float distance = MathUtils.getDistance(enemyShip, drone);
+                float distance = MathUtils.getDistanceSquared(enemyShip, drone);
                 if (distance < tracker) {
                     tracker = distance;
                     droneTargetFighter = enemyShip;
@@ -349,18 +231,18 @@ public class DroneAIUtils {
     }
 
     public static void deleteDrone(ShipAPI drone, CombatEngineAPI engine) {
-        //engine.removeEntity(drone);
-        //engine.spawnExplosion(drone.getLocation(), drone.getVelocity(), DRONE_EXPLOSION_COLOUR, drone.getMass(), 1.5f);
-        engine.applyDamage(
-                drone,
-                drone.getLocation(),
-                10000f,
-                DamageType.HIGH_EXPLOSIVE,
-                0f,
-                true,
-                false,
-                null,
-                false
-        );
+        engine.spawnExplosion(drone.getLocation(), drone.getVelocity(), Color.WHITE, drone.getMass(), 1.5f);
+        engine.removeEntity(drone);
+//        engine.applyDamage(
+//                drone,
+//                drone.getLocation(),
+//                10000f,
+//                DamageType.HIGH_EXPLOSIVE,
+//                0f,
+//                true,
+//                false,
+//                null,
+//                false
+//        );
     }
 }

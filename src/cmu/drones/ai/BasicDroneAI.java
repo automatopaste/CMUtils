@@ -13,24 +13,7 @@ public abstract class BasicDroneAI implements ShipAIPlugin {
     private final IntervalUtil alternateHostSearchLimit = new IntervalUtil(1f, 1f);
     private final IntervalUtil delayBeforeLanding = new IntervalUtil(getDelayBeforeLanding(), getDelayBeforeLanding());
     private boolean landing = false;
-    private final DroneAIUtils.PDControl control = new DroneAIUtils.PDControl() {
-        @Override
-        public float getKpX() {
-            return 10f;
-        }
-        @Override
-        public float getKdX() {
-            return 3f;
-        }
-        @Override
-        public float getKpY() {
-            return 6f;
-        }
-        @Override
-        public float getKdY() {
-            return 1.5f;
-        }
-    };
+    private final DroneAIUtils.PDControl control = getPDControl();
 
     public BasicDroneAI(ShipAPI drone, ShipAPI mothership) {
         this.drone = drone;
@@ -61,11 +44,10 @@ public abstract class BasicDroneAI implements ShipAIPlugin {
 
             Vector2f destLocation = getDestLocation(amount);
             if (destLocation == null) destLocation = new Vector2f(mothership.getLocation());
-//            DroneAIUtils.move(drone, mothership, destLocation);
-            DroneAIUtils.move2(destLocation, drone, control);
+            DroneAIUtils.move(destLocation, drone, control);
 
             float destFacing = getDestFacing(amount);
-            DroneAIUtils.rotateToFacing(drone, destFacing, engine);
+            DroneAIUtils.rotate(destFacing, drone, control);
 
             if (isLanding() || isRecalling()) { // system wants this drone to land
                 if (!landing) {
@@ -83,6 +65,29 @@ public abstract class BasicDroneAI implements ShipAIPlugin {
                 landing = false;
             }
         }
+    }
+
+    protected DroneAIUtils.PDControl getPDControl() {
+        return new DroneAIUtils.PDControl() {
+            @Override
+            public float getKp() {
+                return 10f;
+            }
+            @Override
+            public float getKd() {
+                return 3f;
+            }
+
+            @Override
+            public float getRp() {
+                return 3f;
+            }
+
+            @Override
+            public float getRd() {
+                return 1f;
+            }
+        };
     }
 
     protected void delete(CombatEngineAPI engine) {

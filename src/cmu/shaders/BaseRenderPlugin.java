@@ -1,5 +1,6 @@
 package cmu.shaders;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin;
 import com.fs.starfarer.api.combat.CombatEngineLayers;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -79,6 +80,8 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
 
     @Override
     public void render(CombatEngineLayers layer, ViewportAPI viewport) {
+        if (Global.getCombatEngine().isUIShowingDialog()) return;
+
         glBindVertexArray(vao);
         program.bind();
 

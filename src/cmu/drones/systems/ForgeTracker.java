@@ -1,13 +1,15 @@
 package cmu.drones.systems;
 
-import cmu.drones.ai.DroneAIUtils;
 import cmu.misc.CombatUI;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.listeners.AdvanceableListener;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
+import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import com.fs.starfarer.api.util.IntervalUtil;
 import org.lazywizard.lazylib.VectorUtils;
@@ -21,7 +23,7 @@ import java.util.Random;
 /**
  * Handles spawning, launching and reserve cooldown
  */
-public class ForgeTracker {
+public class ForgeTracker extends BaseEveryFrameCombatPlugin {
 
     public static final String LAUNCH_DELAY_STAT_KEY = "PSE_launchDelayStatKey";
     public static final String REGEN_DELAY_STAT_KEY = "PSE_regenDelayStatKey";
@@ -32,23 +34,30 @@ public class ForgeTracker {
     private final List<ShipAPI> deployed = new ArrayList<>(); // list of currently deployed drones
 
     private final IntervalUtil launchDelay; // tracks delay between spawning new drones
+    private final DroneSystem droneSystem;
     private int reserveCount; // tracks number of drones stored in current ship
-    private float forgeProgress = 0f; // cooldown tracker
+    private float forgeProgress; // cooldown tracker
 
-    public ForgeTracker(ForgeSpec spec, ShipAPI mothership) {
+    public ForgeTracker(ForgeSpec spec, ShipAPI mothership, DroneSystem droneSystem) {
         this.spec = spec;
         this.mothership = mothership;
 
         launchDelay = new IntervalUtil(spec.getLaunchDelay(), spec.getLaunchDelay());
+        this.droneSystem = droneSystem;
         launchDelay.forceIntervalElapsed();
 
         reserveCount = spec.getMaxReserveCount();
+        forgeProgress = spec.getForgeCooldown();
     }
 
-    public void advance(float amount) {
+    @Override
+    public void advance(float amount, List<InputEventAPI> events) {
         CombatEngineAPI engine = Global.getCombatEngine();
 
-        if (mothership == null || !mothership.isAlive() || mothership.isHulk()) return;
+        if (mothership == null || !mothership.isAlive() || mothership.isHulk()) {
+            engine.removePlugin(this);
+            return;
+        }
 
         //stat modifications
         float regenDelayStatMod = mothership.getMutableStats().getDynamic().getMod(REGEN_DELAY_STAT_KEY).computeEffective(1f);
@@ -56,15 +65,23 @@ public class ForgeTracker {
         // cooldown period
         float forgeCooldown = spec.getForgeCooldown() * regenDelayStatMod;
 
-        float fill = forgeProgress / forgeCooldown;
-        CombatUI.drawSecondUnlimitedInterfaceStatusBar(
+        boolean[] arr = new boolean[spec.getMaxDeployedDrones()];
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = i < deployed.size();
+        }
+        CombatUI.drawDroneSystemUI(
                 mothership,
-                fill,
-                null,
-                null,
-                (float) reserveCount / spec.getMaxReserveCount(),
-                "FORGE",
-                reserveCount + "/" + spec.getMaxReserveCount()
+                arr,
+                Math.max(deployed.size() - spec.getMaxDeployedDrones(), 0),
+                "deployed",
+                "forge cooldown",
+                forgeProgress / forgeCooldown,
+                reserveCount,
+                spec.getMaxReserveCount(),
+                droneSystem.getActiveDroneOrder(),
+                droneSystem.getNumDroneOrders(),
+                droneSystem.getActiveDroneOrderTitle(),
+                droneSystem.getIconForActiveState()
         );
 
         if (engine.isPaused()) return;
@@ -72,6 +89,7 @@ public class ForgeTracker {
         List<ShipAPI> toRemove = new ArrayList<>();
         for (ShipAPI drone : deployed) {
             if (!engine.isEntityInPlay(drone) || !drone.isAlive() || drone.isHulk()) {
+                engine.removeEntity(drone);
                 toRemove.add(drone);
             } else if (drone.isFinishedLanding()) {
                 reserveCount++;
@@ -128,7 +146,11 @@ public class ForgeTracker {
 
         drone.setShipAI(spec.initNewDroneAIPlugin(drone, mothership));
 
+        drone.setOwner(mothership.getOwner());
+
         manager.setSuppressDeploymentMessages(suppress);
+
+        droneSystem.droneSpawnCallback(drone, this, droneSystem);
 
         deployed.add(drone);
     }
@@ -162,6 +184,10 @@ public class ForgeTracker {
         }
 
         return new Vector3f(loc.x, loc.y, facing);
+    }
+
+    public ShipAPI getMothership() {
+        return mothership;
     }
 
     public List<ShipAPI> getDeployed() {

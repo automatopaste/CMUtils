@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipSystemAPI;
+import com.fs.starfarer.api.combat.listeners.AdvanceableListener;
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript;
 import org.lwjgl.input.Keyboard;
 
@@ -20,14 +21,14 @@ public abstract class DroneShipsystem extends BaseShipSystemScript implements Dr
         if (once) {
             ShipAPI mothership = (ShipAPI) stats.getEntity();
             forgeTracker = initDroneSystem(mothership);
+            Global.getCombatEngine().addPlugin(forgeTracker);
+
             SystemData.putDroneSystem(this, mothership, Global.getCombatEngine());
             once = false;
         }
 
         boolean activate = Keyboard.isKeyDown(Keyboard.getKeyIndex(Global.getSettings().getControlStringForEnumName("SHIP_USE_SYSTEM")));
         if (activate && !tracker) cycleDroneOrders();
-
-        forgeTracker.advance(Global.getCombatEngine().getElapsedInLastFrame());
 
         tracker = activate;
     }
@@ -66,5 +67,10 @@ public abstract class DroneShipsystem extends BaseShipSystemScript implements Dr
     @Override
     public ForgeTracker getForgeTracker() {
         return forgeTracker;
+    }
+
+    @Override
+    public void droneSpawnCallback(ShipAPI drone, ForgeTracker forgeTracker, DroneSystem droneSystem) {
+
     }
 }
