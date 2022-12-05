@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipSystemAPI;
-import com.fs.starfarer.api.combat.listeners.AdvanceableListener;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript;
 import org.lwjgl.input.Keyboard;
 
@@ -15,6 +15,7 @@ public abstract class DroneShipsystem extends BaseShipSystemScript implements Dr
     private ForgeTracker forgeTracker;
     private boolean tracker = false;
     private boolean once = true;
+    private SpriteAPI spatialUIGraphic;
 
     @Override
     public void apply(MutableShipStatsAPI stats, String id, State state, float effectLevel) {
@@ -31,6 +32,8 @@ public abstract class DroneShipsystem extends BaseShipSystemScript implements Dr
         if (activate && !tracker) cycleDroneOrders();
 
         tracker = activate;
+
+        spatialUIGraphic = Global.getSettings().getSprite("ui", "spatial");
     }
 
     @Override
@@ -72,5 +75,10 @@ public abstract class DroneShipsystem extends BaseShipSystemScript implements Dr
     @Override
     public void droneSpawnCallback(ShipAPI drone, ForgeTracker forgeTracker, DroneSystem droneSystem) {
 
+    }
+
+    @Override
+    public SpriteAPI getSpatialUIGraphic() {
+        return spatialUIGraphic;
     }
 }

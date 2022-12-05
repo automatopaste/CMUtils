@@ -3,6 +3,7 @@
     "SubsystemCombatManager": "cmu.plugins.SubsystemCombatManager",
     "GUIDebug": "cmu.plugins.GUIDebug",
     "CMUOverlayPlugin": "cmu.plugins.CMUOverlayPlugin",
+    "CMUCombatPlugin": "cmu.plugins.CMUCombatPlugin",
   },
 
   "cmu_SubsystemToggleKey": "I",
@@ -19,5 +20,11 @@
   "cmu_ForceRendererParticleCapUpdate": true, #disable if getting CPU performance hits,
 
   "cmu_widgetOffsetX": 0,
-  "cmu_widgetOffsetY": 0,
+  "cmu_widgetOffsetY": 500,
+
+  "graphics":{
+    "ui":{
+      "spatial":"graphics/CMUtils/gui_graphic.png",
+    },
+  },
 }

@@ -7,6 +7,7 @@ import org.lwjgl.util.vector.Vector3f;
 import java.awt.*;
 
 public class BaseParticle {
+
     public float age;
     public final float lifetime;
     public final Vector2f location;
@@ -38,7 +39,7 @@ public class BaseParticle {
         this.sizeFinal = new Vector2f(params.sizeFinal);
         this.size = new Vector2f(sizeInitial);
         this.color = params.color;
-        this.alpha = 1f;
+        this.alpha = 0f;
         this.computeFunction = params.computeFunction;
     }
 

@@ -5,7 +5,8 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.*;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.loading.WeaponGroupSpec;
-import com.fs.starfarer.ui.V;
+import org.lazywizard.lazylib.MathUtils;
+import org.lazywizard.lazylib.VectorUtils;
 import org.lazywizard.lazylib.ui.FontException;
 import org.lazywizard.lazylib.ui.LazyFont;
 import org.lazywizard.lazylib.ui.LazyFont.DrawableString;
@@ -13,9 +14,8 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -45,6 +45,12 @@ public class CombatUI {
     };
 
     private static final Vector2f DRONE_UI_WIDGET_OFFSET = new Vector2f(Global.getSettings().getFloat("cmu_widgetOffsetX"), Global.getSettings().getFloat("cmu_widgetOffsetY"));
+
+    public static boolean hasRendered = false;
+
+    public static boolean getHasRendered() {
+        return hasRendered;
+    }
 
     static {
         GREENCOLOR = Global.getSettings().getColor("textFriendColor");
@@ -520,8 +526,24 @@ public class CombatUI {
         }
     }
 
-    public static void drawDroneSystemUI(ShipAPI ship, boolean[] tiles, int extra, String text1, String text2, float cooldown, int reserve, int reserveMax, int activeState, int numStates, String state, SpriteAPI icon) {
-        if (ship != Global.getCombatEngine().getPlayerShip()) {
+    public static void drawDroneSystemStateWidget(
+            ShipAPI mothership,
+            boolean[] tiles,
+            int extra,
+            String text1,
+            String text2,
+            float cooldown,
+            int reserve,
+            int reserveMax,
+            int activeState,
+            int numStates,
+            String state,
+            SpriteAPI icon,
+            Map<ShipAPI, SpriteDimWrapper> drones,
+            SpriteAPI background,
+            SpriteDimWrapper shipSprite
+    ) {
+        if (mothership != Global.getCombatEngine().getPlayerShip()) {
             return;
         }
 
@@ -534,16 +556,18 @@ public class CombatUI {
         final Vector2f reserveDim = new Vector2f(12f, 12f);
         final Vector2f stateRender = new Vector2f(22f, 22f);
         final Vector2f iconDim = new Vector2f(32f, 32f);
+        final Vector2f spatialDim = new Vector2f(128f, 128f);
 
         final Vector2f edgePad = new Vector2f(-16f - reserveDim.x - (2f * UIscaling), 16f);
         edgePad.scale(UIscaling);
         Vector2f start = Vector2f.add(new Vector2f(Global.getSettings().getScreenWidth() * UIscaling, 0f), edgePad, new Vector2f());
         Vector2f.add(start, DRONE_UI_WIDGET_OFFSET, start);
 
-        Color colour = (ship.isAlive()) ? GREENCOLOR : BLUCOLOR;
+        Color colour = (mothership.isAlive()) ? GREENCOLOR : BLUCOLOR;
 
         Vector2f decoSize = new Vector2f(tileDim.x, tileDim.y + statusDim.y);
 
+        // decorator L bar thing
         decoRender(Color.BLACK, start, new Vector2f(UIscaling, -UIscaling), decoSize);
         decoRender(colour, start, new Vector2f(0f, 0f), decoSize);
 
@@ -553,29 +577,190 @@ public class CombatUI {
         decoPad.scale(UIscaling);
         Vector2f.add(start, decoPad, start);
 
+        // chevrons
         tileRender(Color.BLACK, start, new Vector2f(UIscaling, -UIscaling), tileDim, tiles, extra, text1);
         float hPad = tileRender(colour, start, new Vector2f(0f, 0f), tileDim, tiles, extra, text1);
 
         final float pad = UIscaling * 4f;
         start.y += tileDim.y + pad;
 
+        // cooldown bar
         boolean full = reserve >= reserveMax && cooldown > 0.95f;
         statusRender(Color.BLACK, start, new Vector2f(UIscaling, -UIscaling), statusDim, text2, cooldown, hPad, full);
         statusRender(colour, start, new Vector2f(0f, 0f), statusDim, text2, cooldown, hPad, full);
 
+        // reserve squares
         reserveRender(Color.BLACK, reserveStart, new Vector2f(UIscaling, -UIscaling), reserveDim, reserve, reserveMax);
         reserveRender(colour, reserveStart, new Vector2f(0f, 0f), reserveDim, reserve, reserveMax);
 
+        // hexagons, arrow, title text
         start.y += statusDim.y + pad;
-
         stateRender(Color.BLACK, start, new Vector2f(UIscaling, -UIscaling), stateRender, state, numStates, activeState);
         stateRender(colour, start, new Vector2f(0f, 0f), stateRender, state, numStates, activeState);
 
+        // icon
         start.x += UIscaling;
         start.y += iconDim.y + pad;
-
         iconRender(Color.BLACK, icon, start, new Vector2f(UIscaling, -UIscaling), iconDim);
         iconRender(colour, icon, start, new Vector2f(0f, 0f), iconDim);
+        start.x -= UIscaling;
+
+        // spatial widget
+        start.y += pad;
+        spatialRender(colour, start, new Vector2f(0f, 0f), spatialDim, background, drones, mothership, shipSprite);
+    }
+
+    private static void spatialRender(
+            Color colour,
+            Vector2f start,
+            Vector2f offset,
+            Vector2f size,
+            SpriteAPI background,
+            Map<ShipAPI, SpriteDimWrapper> drones,
+            ShipAPI mothership,
+            SpriteDimWrapper shipSprite
+    ) {
+        Vector2f dim = new Vector2f(size);
+        dim.scale(UIscaling);
+        offset.scale(UIscaling);
+
+        Vector2f node = Vector2f.add(start, offset, new Vector2f());
+
+        boolean renderBG = !hasRendered;
+        hasRendered = true;
+
+        if (renderBG) {
+            openGLForMisc();
+
+            background.setColor(colour);
+            background.setAlphaMult(0.08f);
+            background.setSize(dim.x, dim.y);
+
+            background.render(node.x - dim.x, node.y);
+        }
+
+        final float d1 = mothership.getShieldRadiusEvenIfNoShield();
+        float d2 = d1 * d1;
+        for (ShipAPI drone : drones.keySet()) {
+            float d2s = Vector2f.sub(drone.getLocation(), mothership.getLocation(), new Vector2f()).lengthSquared();
+            d2 = Math.max(d2, d2s);
+        }
+
+        float zoom = 0.4f * dim.x / (float) Math.sqrt(d2);
+
+        Vector2f center = new Vector2f(node.x - (dim.x * 0.5f), node.y + (dim.y * 0.5f));
+
+        if (renderBG) {
+            shipSprite.sprite.setColor(Color.BLACK);
+            shipSprite.sprite.setSize(dim.x * zoom * 1.1f, dim.y * zoom * shipSprite.ratio * 1.1f);
+            shipSprite.sprite.renderAtCenter(center.x, center.y);
+
+            shipSprite.sprite.setColor(colour);
+            shipSprite.sprite.setSize(dim.x * zoom, dim.y * zoom * shipSprite.ratio);
+            shipSprite.sprite.renderAtCenter(center.x, center.y);
+        }
+
+        closeGLForMisc();
+
+        openGLForMisc();
+        if (mothership.getShield() != null && mothership.getShield().isOn()) {
+            drawShieldArc(mothership, colour, zoom, center, 0.2f, 90f - mothership.getFacing());
+        }
+        closeGLForMisc();
+
+        openGLForMisc();
+        for (ShipAPI drone : drones.keySet()) {
+            SpriteDimWrapper sprite = drones.get(drone);
+
+            Vector2f d = Vector2f.sub(drone.getLocation(), mothership.getLocation(), new Vector2f());
+            d.scale(zoom);
+            VectorUtils.rotate(d, 90f - mothership.getFacing());
+
+            sprite.sprite.setAngle(drone.getFacing() - mothership.getFacing());
+            float x = d.x + center.x + (sprite.sprite.getCenterX() * 0.5f);
+            float y = d.y + center.y + (sprite.sprite.getCenterY() * 0.5f);
+
+            sprite.sprite.setColor(Color.BLACK);
+            sprite.sprite.setSize(zoom * sprite.width * 1.05f, zoom * sprite.height * 1.05f);
+            sprite.sprite.renderAtCenter(x, y);
+
+            sprite.sprite.setColor(colour);
+            sprite.sprite.setSize(zoom * sprite.width, zoom * sprite.height);
+            sprite.sprite.renderAtCenter(x, y);
+        }
+        closeGLForMisc();
+
+        openGLForMisc();
+        for (ShipAPI drone : drones.keySet()) {
+            if (drone.getShield() != null && drone.getShield().isOn()) {
+                SpriteDimWrapper sprite = drones.get(drone);
+
+                Vector2f d = Vector2f.sub(drone.getShieldCenterEvenIfNoShield(), mothership.getLocation(), new Vector2f());
+                d.scale(zoom);
+                VectorUtils.rotate(d, -mothership.getFacing() + 90f);
+
+                float x = d.x + center.x;
+                float y = d.y + center.y;
+
+                drawShieldArc(drone, colour, zoom, new Vector2f(x, y), 0.5f, 90f - mothership.getFacing());
+            }
+        }
+        closeGLForMisc();
+    }
+
+    public static void drawShieldArc(ShipAPI ship, Color colour, float zoom, Vector2f center, float alpha, float angleOffset) {
+        glColor4f(
+                colour.getRed() / 255f,
+                colour.getGreen() / 255f,
+                colour.getBlue() / 255f,
+                alpha
+        );
+
+        List<Vector2f> points = new ArrayList<>();
+        float angle = ship.getShield().getActiveArc();
+
+        Vector2f i1 = new Vector2f(ship.getShieldRadiusEvenIfNoShield() * zoom, 0f);
+        VectorUtils.rotate(i1, ship.getShield().getFacing() + (angle * 0.5f) + angleOffset);
+
+        int intervals = Math.max(5, (int) (angle / 20f));
+        points.add(new Vector2f(i1));
+        float interval = ship.getShield().getActiveArc() / intervals;
+        for (int i = 0; i < intervals; i++) {
+            VectorUtils.rotate(i1, -interval);
+            points.add(new Vector2f(i1));
+        }
+
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glBegin(GL_LINE_STRIP);
+        for (Vector2f point : points) {
+            glVertex2f(point.x + center.x, point.y + center.y);
+        }
+        glEnd();
+        glDisable(GL_LINE_SMOOTH);
+    }
+
+    public static void drawDot(float x, float y) {
+        glBegin(GL_TRIANGLE_STRIP);
+        glVertex2f(x, y + 4f);
+        glVertex2f(x - 4f, y);
+        glVertex2f(x + 4f, y);
+        glVertex2f(x, y - 4f);
+        glEnd();
+    }
+
+    public static class SpriteDimWrapper {
+        public final SpriteAPI sprite;
+        public final float width;
+        public final float height;
+        public final float ratio;
+
+        public SpriteDimWrapper(SpriteAPI sprite) {
+            this.sprite = sprite;
+            width = sprite.getWidth();
+            height = sprite.getHeight();
+            ratio = height / width;
+        }
     }
 
     private static void iconRender(Color colour, SpriteAPI sprite, Vector2f start, Vector2f offset, Vector2f size) {
@@ -872,6 +1057,9 @@ public class CombatUI {
         }
     }
 
+    /**
+     * @return left text width
+     */
     private static float tileRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, boolean[] tiles, int extra, String text) {
         Vector2f dim = new Vector2f(size);
         dim.scale(UIscaling);

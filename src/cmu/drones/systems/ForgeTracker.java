@@ -6,19 +6,16 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.listeners.AdvanceableListener;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import com.fs.starfarer.api.util.IntervalUtil;
+import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.VectorUtils;
 import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Handles spawning, launching and reserve cooldown
@@ -30,13 +27,19 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
 
     private final ForgeSpec spec; // spec object with basic values needed by all drone systems
     private final ShipAPI mothership; // host ship with drone system
+    private final CombatUI.SpriteDimWrapper shipSprite;
 
     private final List<ShipAPI> deployed = new ArrayList<>(); // list of currently deployed drones
+    private final Map<ShipAPI, CombatUI.SpriteDimWrapper> droneSprites = new HashMap<>();
 
     private final IntervalUtil launchDelay; // tracks delay between spawning new drones
     private final DroneSystem droneSystem;
     private int reserveCount; // tracks number of drones stored in current ship
     private float forgeProgress; // cooldown tracker
+
+    //stat modifications
+    float regenDelayStatMod;
+    float launchDelayStatMod;
 
     public ForgeTracker(ForgeSpec spec, ShipAPI mothership, DroneSystem droneSystem) {
         this.spec = spec;
@@ -46,8 +49,13 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
         this.droneSystem = droneSystem;
         launchDelay.forceIntervalElapsed();
 
-        reserveCount = spec.getMaxReserveCount();
-        forgeProgress = spec.getForgeCooldown();
+        shipSprite = new CombatUI.SpriteDimWrapper(Global.getSettings().getSprite(mothership.getHullSpec().getSpriteName()));
+
+        regenDelayStatMod = mothership.getMutableStats().getDynamic().getMod(REGEN_DELAY_STAT_KEY).computeEffective(1f);
+        launchDelayStatMod = mothership.getMutableStats().getDynamic().getMod(LAUNCH_DELAY_STAT_KEY).computeEffective(1f);
+
+        reserveCount = spec.getMaxDeployedDrones();
+        forgeProgress = spec.getForgeCooldown() * regenDelayStatMod;
     }
 
     @Override
@@ -59,9 +67,8 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
             return;
         }
 
-        //stat modifications
-        float regenDelayStatMod = mothership.getMutableStats().getDynamic().getMod(REGEN_DELAY_STAT_KEY).computeEffective(1f);
-        float launchDelayStatMod = mothership.getMutableStats().getDynamic().getMod(LAUNCH_DELAY_STAT_KEY).computeEffective(1f);
+        regenDelayStatMod = mothership.getMutableStats().getDynamic().getMod(REGEN_DELAY_STAT_KEY).computeEffective(1f);
+        launchDelayStatMod = mothership.getMutableStats().getDynamic().getMod(LAUNCH_DELAY_STAT_KEY).computeEffective(1f);
         // cooldown period
         float forgeCooldown = spec.getForgeCooldown() * regenDelayStatMod;
 
@@ -69,20 +76,25 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
         for (int i = 0; i < arr.length; i++) {
             arr[i] = i < deployed.size();
         }
-        CombatUI.drawDroneSystemUI(
-                mothership,
-                arr,
-                Math.max(deployed.size() - spec.getMaxDeployedDrones(), 0),
-                "deployed",
-                "forge cooldown",
-                forgeProgress / forgeCooldown,
-                reserveCount,
-                spec.getMaxReserveCount(),
-                droneSystem.getActiveDroneOrder(),
-                droneSystem.getNumDroneOrders(),
-                droneSystem.getActiveDroneOrderTitle(),
-                droneSystem.getIconForActiveState()
-        );
+        if (mothership.equals(engine.getPlayerShip())) {
+            CombatUI.drawDroneSystemStateWidget(
+                    mothership,
+                    arr,
+                    Math.max(deployed.size() - spec.getMaxDeployedDrones(), 0),
+                    "deployed",
+                    "forge cooldown",
+                    forgeProgress / forgeCooldown,
+                    reserveCount,
+                    spec.getMaxReserveCount(),
+                    droneSystem.getActiveDroneOrder(),
+                    droneSystem.getNumDroneOrders(),
+                    droneSystem.getActiveDroneOrderTitle(),
+                    droneSystem.getIconForActiveState(),
+                    droneSprites,
+                    droneSystem.getSpatialUIGraphic(),
+                    shipSprite
+            );
+        }
 
         if (engine.isPaused()) return;
 
@@ -98,6 +110,7 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
             }
         }
         deployed.removeAll(toRemove);
+        for (ShipAPI d : toRemove) droneSprites.remove(d);
 
         if (forgeProgress > 0f) {
             if (reserveCount < spec.getMaxReserveCount()) {
@@ -132,16 +145,17 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
         boolean suppress = manager.isSuppressDeploymentMessages();
         manager.setSuppressDeploymentMessages(true);
 
-        Vector3f launch = getLaunchLocation();
+        WeaponSlotAPI launch = getLaunchSlot();
+        float angle = MathUtils.clampAngle(launch.getAngle() + mothership.getFacing());
 
         FleetMemberAPI member = Global.getFactory().createFleetMember(FleetMemberType.FIGHTER_WING, spec.getDroneVariant());
-        ShipAPI drone = manager.spawnFleetMember(member, new Vector2f(launch.x, launch.y), launch.z, 0f);
+        ShipAPI drone = manager.spawnFleetMember(member, new Vector2f(launch.computePosition(mothership)), angle, 0f);
 
         drone.setAnimatedLaunch();
 
         Vector2f vel = new Vector2f(mothership.getVelocity());
         Vector2f n = new Vector2f(spec.getLaunchSpeed(), 0f);
-        VectorUtils.rotate(n, launch.z);
+        VectorUtils.rotate(n, angle);
         drone.getVelocity().set(Vector2f.add(vel, n, vel));
 
         drone.setShipAI(spec.initNewDroneAIPlugin(drone, mothership));
@@ -153,12 +167,10 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
         droneSystem.droneSpawnCallback(drone, this, droneSystem);
 
         deployed.add(drone);
+        droneSprites.put(drone, new CombatUI.SpriteDimWrapper(Global.getSettings().getSprite(drone.getHullSpec().getSpriteName())));
     }
 
-    public Vector3f getLaunchLocation() {
-        Vector2f loc = null;
-        float facing = 0f;
-
+    public WeaponSlotAPI getLaunchSlot() {
         List<WeaponSlotAPI> weapons = mothership.getHullSpec().getAllWeaponSlotsCopy();
         if (!weapons.isEmpty()) {
             //these aren't actually bays, but since launch bays have no way of getting their location system mounts are used
@@ -173,17 +185,10 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
                 //pick random entry in bay list
                 Random index = new Random();
                 WeaponSlotAPI w = bays.get(index.nextInt(bays.size()));
-                loc = w.computePosition(mothership);
-                facing = w.getAngle();
+                return w;
             }
         }
-
-        if (loc == null) {
-            loc = mothership.getLocation();
-            facing = mothership.getFacing();
-        }
-
-        return new Vector3f(loc.x, loc.y, facing);
+        return null;
     }
 
     public ShipAPI getMothership() {

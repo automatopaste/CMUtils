@@ -22,4 +22,6 @@ public interface DroneSystem {
     SpriteAPI getIconForActiveState();
 
     void droneSpawnCallback(ShipAPI drone, ForgeTracker forgeTracker, DroneSystem droneSystem);
+
+    SpriteAPI getSpatialUIGraphic();
 }

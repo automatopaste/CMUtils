@@ -16,7 +16,7 @@ import java.util.EnumSet;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
 import static org.lwjgl.opengl.GL14.glBlendEquation;
-import static org.lwjgl.opengl.GL15.glDeleteBuffers;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
 
 public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin {
@@ -80,8 +80,6 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
 
     @Override
     public void render(CombatEngineLayers layer, ViewportAPI viewport) {
-        if (Global.getCombatEngine().isUIShowingDialog()) return;
-
         glBindVertexArray(vao);
         program.bind();
 
@@ -89,6 +87,8 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
         populateUniforms(program.getProgramID(), layer, viewport);
 
         updateBuffers(bufferVBOs, layer, viewport);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         draw(layer, viewport);
 

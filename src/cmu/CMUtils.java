@@ -8,8 +8,15 @@ import cmu.plugins.renderers.ImplosionParticleRenderer;
 import cmu.shaders.BaseRenderPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.combat.entities.Ship;
+import org.lazywizard.lazylib.MathUtils;
+import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class CMUtils {
@@ -108,5 +115,57 @@ public class CMUtils {
 
     public static GUIDebug getGuiDebug() {
         return GUI_DEBUG_PLUGIN;
+    }
+
+    public enum ShipSearchFighters {
+        FIGHTERS,
+        NOT_FIGHTERS,
+        DONT_CARE
+    }
+
+    public enum ShipSearchOwner {
+        FRIENDLY,
+        ENEMY,
+        DONT_CARE
+    }
+
+    public static List<ShipAPI> getShipsInRange(Vector2f loc, float range, int owner, ShipSearchFighters searchFighters, ShipSearchOwner searchOwner) {
+        Iterator<Object> iter = Global.getCombatEngine().getShipGrid().getCheckIterator(loc, range * 2f, range * 2f);
+
+        List<ShipAPI> out = new ArrayList<>();
+
+        while (iter.hasNext()) {
+            ShipAPI ship = (ShipAPI) iter.next();
+
+            if (ship.isHulk() || !ship.isAlive()) continue;
+
+            switch (searchOwner) {
+                case ENEMY:
+                    if (owner == ship.getOwner()) continue;
+                    break;
+                case FRIENDLY:
+                    if (owner != ship.getOwner()) continue;
+                    break;
+                case DONT_CARE:
+                    break;
+            }
+
+            switch (searchFighters) {
+                case FIGHTERS:
+                    if (!ship.isFighter()) continue;
+                    break;
+                case NOT_FIGHTERS:
+                    if (ship.isFighter()) continue;
+                    break;
+                case DONT_CARE:
+                    break;
+            }
+
+            if (MathUtils.getDistanceSquared(loc, ship.getLocation()) <= range * range) {
+                out.add(ship);
+            }
+        }
+
+        return out;
     }
 }

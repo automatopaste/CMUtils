@@ -4,12 +4,14 @@ import cmu.subsystems.BaseSubsystem;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.List;
 
 public abstract class DroneSubsystem extends BaseSubsystem implements DroneSystem {
 
     private ForgeTracker forgeTracker;
+    private SpriteAPI spatialUIGraphic;
 
     @Override
     public void init(ShipAPI ship) {
@@ -19,6 +21,8 @@ public abstract class DroneSubsystem extends BaseSubsystem implements DroneSyste
         Global.getCombatEngine().addPlugin(forgeTracker);
 
         SystemData.putDroneSystem(this, ship, Global.getCombatEngine());
+
+        spatialUIGraphic = Global.getSettings().getSprite("ui", "spatial");
     }
 
     @Override
@@ -85,5 +89,10 @@ public abstract class DroneSubsystem extends BaseSubsystem implements DroneSyste
     @Override
     public void droneSpawnCallback(ShipAPI drone, ForgeTracker forgeTracker, DroneSystem droneSystem) {
 
+    }
+
+    @Override
+    public SpriteAPI getSpatialUIGraphic() {
+        return spatialUIGraphic;
     }
 }

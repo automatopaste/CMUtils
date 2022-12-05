@@ -3,6 +3,7 @@ package cmu.drones.ai;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.*;
 import com.fs.starfarer.api.util.IntervalUtil;
+import org.lazywizard.lazylib.VectorUtils;
 import org.lwjgl.util.vector.Vector2f;
 
 public abstract class BasicDroneAI implements ShipAIPlugin {
@@ -64,6 +65,13 @@ public abstract class BasicDroneAI implements ShipAIPlugin {
                 delayBeforeLanding.setElapsed(0f);
                 landing = false;
             }
+        }
+
+        if (drone.isLanding()) {
+            Vector2f s = Vector2f.sub(getDestLocation(amount), drone.getLocation(), new Vector2f());
+            if (s.lengthSquared() != 0f) VectorUtils.clampLength(s, amount * drone.getMaxSpeed() * 0.1f);
+
+            Vector2f.add(drone.getLocation(), s, drone.getLocation());
         }
     }
 

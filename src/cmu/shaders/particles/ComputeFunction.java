@@ -9,9 +9,6 @@ import org.lwjgl.util.vector.Vector2f;
 public abstract class ComputeFunction {
     public abstract void advance(float delta, BaseParticle data);
 
-    /**
-     * java 7 :weary:
-     */
     public static class DefaultComputeFunction extends ComputeFunction {
         @Override
         public void advance(float delta, BaseParticle data) {
@@ -28,6 +25,17 @@ public abstract class ComputeFunction {
             float ratio = data.age / data.lifetime;
             data.size.x = (data.sizeFinal.x - data.sizeInitial.x) * ratio + data.sizeInitial.x;
             data.size.y = (data.sizeFinal.y - data.sizeInitial.y) * ratio + data.sizeInitial.y;
+        }
+    }
+
+    public static class SmoothAlphaComputeFunction extends DefaultComputeFunction {
+
+        @Override
+        public void advance(float delta, BaseParticle data) {
+            super.advance(delta, data);
+
+            float f = (2f * data.alpha - 1);
+            data.alpha = 1f - (f * f * f * f);
         }
     }
 

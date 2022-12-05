@@ -6,6 +6,7 @@ import cmu.drones.systems.SystemData;
 import cmu.misc.MiscUtils;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.*;
+import org.jetbrains.annotations.Nullable;
 import org.lazywizard.lazylib.CollisionUtils;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.VectorUtils;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class DroneAIUtils {
 
     /**
-     * Perfect movement algorithm using a PD controller damping system. Integral is not necessary because inherent
+     * Movement algorithm using a PD controller damping system. Integral is not necessary because inherent
      * offset is zero
      * @param dest target location
      * @param drone drone that is moving
@@ -92,6 +93,7 @@ public class DroneAIUtils {
         //CMUtils.getGuiDebug().putText(DroneAIUtils.class, "rotation", er + "");
     }
 
+    @Nullable
     public static CombatEntityAPI getEnemyTarget(ShipAPI mothership, ShipAPI drone, float weaponRange, boolean ignoreMissiles, boolean ignoreFighters, boolean ignoreShips, float targetingArcDeviation) {
         //GET NEARBY OBJECTS TO SHOOT AT priority missiles > fighters > ships
         Vector2f d = Vector2f.sub(drone.getLocation(), mothership.getLocation(), new Vector2f());
@@ -180,13 +182,11 @@ public class DroneAIUtils {
         }
 
         //PRIORITISE TARGET, SET LOCATION
-        CombatEntityAPI target;
         if (droneTargetMissile != null) {
-            target = droneTargetMissile;
+            return droneTargetMissile;
         } else if (droneTargetFighter != null) {
-            target = droneTargetFighter;
-        } else target = droneTargetShip;
-        return target;
+            return droneTargetFighter;
+        } else return droneTargetShip;
     }
 
     public static boolean areFriendliesBlockingArc(ShipAPI drone, CombatEntityAPI target, float focusWeaponRange) {
@@ -195,8 +195,8 @@ public class DroneAIUtils {
                 continue;
             }
 
-            float distance = MathUtils.getDistance(ally, drone);
-            if (MathUtils.getDistance(target, drone) < distance) {
+            float d2 = MathUtils.getDistanceSquared(ally, drone);
+            if (MathUtils.getDistanceSquared(target, drone) < d2) {
                 continue;
             }
 
