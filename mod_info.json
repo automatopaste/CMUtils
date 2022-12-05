@@ -2,8 +2,8 @@
 	"id":"cmutils",
 	"name":"Combat Misc Utils",
 	"author":"tomatopaste",
-	"version":"0.1.2",
-	"description":"read if nerd lmao gotem",
+	"version":"0.3.0",
+	"description":"Collection of miscellaneous utilities for combat modding.",
 	"gameVersion":"0.95.1a-RC6",
 	"modPlugin":"cmu.ModPlugin",
 	"jars": ["jars/CMUtils.jar"]
