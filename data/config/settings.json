@@ -20,7 +20,7 @@
   "cmu_ForceRendererParticleCapUpdate": true, #disable if getting CPU performance hits,
 
   "cmu_widgetOffsetX": 0,
-  "cmu_widgetOffsetY": 500,
+  "cmu_widgetOffsetY": 0, # offset on screen
 
   "graphics":{
     "ui":{

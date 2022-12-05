@@ -41,7 +41,7 @@ public class GUIDebug extends BaseEveryFrameCombatPlugin {
 
     private final Map<Class<?>, Map<String, BaseDebugContainer>> debugData;
 
-    private boolean active = true;
+    private boolean active = false;
 
 //    private DebugGraphContainer graphContainer;
 //    private ShipAPI ship;
