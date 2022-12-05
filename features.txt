@@ -26,3 +26,6 @@ Debug GUI:
     -Flexible graphing tool
     -Dynamic display panel adjustment with '[' ']' keys
     -Support for custom renderer containers
+Drone Systems:
+    -Drone launch and tracking plugin with custom UI widget
+    -Base classes for drone AI

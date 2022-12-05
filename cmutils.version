@@ -1,11 +1,11 @@
 {
 	"masterVersionFile":"https://github.com/automatopaste/CMUtils/releases/download/na/cmutils.version",
 	"modName":"CMUtils",
-	#"modThreadId":1,
+	"modThreadId":25740,
 	"modVersion":
 	{
 		"major":0,
 		"minor":3,
-		"patch":0
+		"patch":1
 	},
 }
