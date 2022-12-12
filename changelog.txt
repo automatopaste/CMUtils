@@ -1,2 +1,5 @@
+v0.3.2
+-fixed crash from vbo buffer conflict
+
 v0.3.1
 -fixed crash related to drone AI null vector
