@@ -121,7 +121,7 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
         }
 
         for (Element e : elements) {
-            e.processInputEvents();
+            e.processInputEvents(new ArrayList<InputEventAPI>());
         }
     }
 
@@ -180,7 +180,7 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
         r.render(dim.x, -dim.y);
 
         for (Element e : elements) {
-            e.render();
+            e.render(Global.getSettings().getScreenScaleMult(), new Vector2f());
         }
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);

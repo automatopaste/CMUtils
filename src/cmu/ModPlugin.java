@@ -3,10 +3,6 @@ package cmu;
 import cmu.misc.SpecLoadingUtils;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.PluginPick;
-import com.fs.starfarer.api.combat.ShipAIPlugin;
-import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 public class ModPlugin extends BaseModPlugin {

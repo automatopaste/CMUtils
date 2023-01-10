@@ -67,7 +67,7 @@ public abstract class BasicDroneAI implements ShipAIPlugin {
             }
 
             if (drone.isLanding()) {
-                Vector2f s = Vector2f.sub(getDestLocation(amount), drone.getLocation(), new Vector2f());
+                Vector2f s = Vector2f.sub(destLocation, drone.getLocation(), new Vector2f());
                 if (s.lengthSquared() != 0f) VectorUtils.clampLength(s, amount * drone.getMaxSpeed() * 0.1f);
 
                 Vector2f.add(drone.getLocation(), s, drone.getLocation());

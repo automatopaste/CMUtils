@@ -1,6 +1,7 @@
 package cmu.gui;
 
 import com.fs.starfarer.api.input.InputEventAPI;
+import org.lwjgl.util.vector.Vector2f;
 
 import java.util.List;
 
@@ -10,39 +11,46 @@ public class Slider implements Element {
 
     private final SliderParams params;
     private float pos = 0.5f;
+    final float sPad = 4f;
 
     public Slider(SliderParams params) {
         this.params = params;
     }
 
     @Override
-    public void render() {
-        float width = pos * params.x;
-        final float pad = 2f;
+    public Vector2f render(float scale, Vector2f loc) {
+        float pad = 8f;
+        if (scale > 1f) pad *= scale;
+
+        float x1 = pad;
+        float x2 = params.x - pad;
+        float y1 = -params.y + pad;
+        float y2 = -pad;
+
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(x1, y1);
+        glVertex2f(x1, y2);
+        glVertex2f(x2, y2);
+        glVertex2f(x2, y1);
+        glEnd();
+
+        float tPad = sPad * scale;
+        float p = pos * params.x;
+        float px1 = p - tPad;
+        float px2 = p + tPad;
 
         glBegin(GL_TRIANGLE_STRIP);
-        glVertex2f(0f, 0f);
-        glVertex2f(0f, params.y);
-        glVertex2f(width - pad, params.y);
-        glVertex2f(width - pad, 0f);
+        glVertex2f(px1, 0f);
+        glVertex2f(px1, -params.y);
+        glVertex2f(px2, 0f);
+        glVertex2f(px2, -params.y);
         glEnd();
 
-        glLineWidth(1f);
-        glBegin(GL_LINES);
-        glVertex2f(width, 0f);
-        glVertex2f(width, params.y);
-        glEnd();
-
-        glBegin(GL_TRIANGLE_STRIP);
-        glVertex2f(width + pad, 0f);
-        glVertex2f(width + pad, params.y);
-        glVertex2f(params.x, params.y);
-        glVertex2f(params.x, 0f);
-        glEnd();
+        return new Vector2f(params.x, params.y);
     }
 
     @Override
-    public void processInputEvents() {
+    public void processInputEvents(List<InputEventAPI> events) {
 
     }
 

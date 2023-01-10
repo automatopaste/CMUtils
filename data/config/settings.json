@@ -2,8 +2,9 @@
   "plugins":{
     "SubsystemCombatManager": "cmu.plugins.SubsystemCombatManager",
     "GUIDebug": "cmu.plugins.GUIDebug",
-    "CMUOverlayPlugin": "cmu.plugins.CMUOverlayPlugin",
+    # "CMUOverlayPlugin": "cmu.plugins.CMUOverlayPlugin",
     "CMUCombatPlugin": "cmu.plugins.CMUCombatPlugin",
+    "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin"
   },
 
   "cmu_SubsystemToggleKey": "I",

@@ -27,21 +27,34 @@ public class Panel implements Element {
     }
 
     @Override
-    public void render() {
-//        glBegin(GL_LINE_STRIP);
-//        glLineWidth(1f);
-//        glColor(params.color);
-//
-//        glVertex2f(0f, 0f);
-//        glVertex2f(params.x, 0f);
-//        glVertex2f(params.x, params.y);
-//        glVertex2f(0f, params.y);
-//
-//        glEnd();
+    public Vector2f render(float scale, Vector2f loc) {
+        glBegin(GL_LINE_LOOP);
+        glLineWidth(scale);
+        glColor(params.color);
 
-        float offset = 0f;
+        glVertex2f(0f, 0f);
+        glVertex2f(params.x, 0f);
+        glVertex2f(params.x, -params.y);
+        glVertex2f(0f, -params.y);
+
+        glEnd();
+
+        glEnable(GL_SCISSOR_TEST);
+        glScissor((int) (loc.x + params.edgePad), (int) (loc.y - params.y + params.edgePad), (int) (params.x - (2f * params.edgePad)), (int) (params.y - params.edgePad));
+
+        glTranslatef(params.edgePad, -params.edgePad, 0f);
+
         for (Element e : children) {
-            e.render();
+            Vector2f v = e.render(scale, loc);
+
+            switch (params.mode) {
+                case VERTICAL:
+                    glTranslatef(0f, -params.listPad - v.y, 0f);
+                    break;
+                case HORIZONTAL:
+                    glTranslatef(params.listPad + v.x, 0f, 0f);
+                    break;
+            }
 
 //            glPushMatrix();
 //
@@ -60,11 +73,16 @@ public class Panel implements Element {
 //
 //            glPopMatrix();
         }
+
+        glDisable(GL_SCISSOR_TEST);
+
+        Vector2f dim = new Vector2f(params.x, params.y);
+        return dim;
     }
 
     @Override
-    public void processInputEvents() {
-
+    public void processInputEvents(List<InputEventAPI> events) {
+        for (Element e : children) e.processInputEvents(events);
     }
 
     public void addChild(Element e) {
@@ -78,6 +96,8 @@ public class Panel implements Element {
     public static final class PanelParams {
         public float x = 100f;
         public float y = 100f;
+        public float edgePad = 4f;
+        public float listPad = 2f;
         public Color color = Color.WHITE;
         public ListMode mode = ListMode.VERTICAL;
     }
