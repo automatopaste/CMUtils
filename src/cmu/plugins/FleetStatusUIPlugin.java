@@ -91,8 +91,21 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
 
         List<ShipAPI> ships = new ArrayList<>();
         for (ShipAPI ship : engine.getShips()) {
-            if (ship.getOwner() == 0 && ship.isAlive() && ship.getHullSize() != ShipAPI.HullSize.FIGHTER && !ship.equals(engine.getPlayerShip()) && ship.getHullLevel() < 1f) {
-                ships.add(ship);
+            if (ship.getOwner() == 0 && ship.isAlive() && ship.getHullSize() != ShipAPI.HullSize.FIGHTER && !ship.equals(engine.getPlayerShip())) {
+                switch (ship.getHullSize()) {
+                    case FRIGATE:
+                        if (states[0]) ships.add(ship);
+                        break;
+                    case DESTROYER:
+                        if (states[1]) ships.add(ship);
+                        break;
+                    case CRUISER:
+                        if (states[2]) ships.add(ship);
+                        break;
+                    case CAPITAL_SHIP:
+                        if (states[3]) ships.add(ship);
+                        break;
+                }
             }
         }
 
@@ -131,10 +144,11 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
 
         final float pad = 1f * SCALING;
 
+        origin.x += 1f;
         renderDeco(new Vector2f(origin.x + 1f, origin.y - 1f), Color.BLACK);
         renderDeco(origin, GREEN);
 
-        renderIcons(new Vector2f(origin.x, origin.y - (18f * SCALING)), size, states);
+        renderIcons(new Vector2f(origin.x + (2f * SCALING), origin.y - (18f * SCALING)), size, states);
 
         Vector2f dim = new Vector2f(120f, 40f);
         origin.x -= dim.x;
@@ -153,18 +167,13 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
     }
 
     private void renderDeco(Vector2f origin, Color color) {
-        final float w = 6f * SCALING;
+        final float w = 1f * SCALING;
 
         float x1 = origin.x;
-        float x2 = origin.x + (10f * SCALING);
-        float x3 = x2 + (8f * SCALING);
-        float x4 = x3 + w;
+        float x2 = origin.x + (48f * SCALING);
 
-        float y1 = origin.y - (10f * SCALING);
+        float y1 = origin.y - (14f * SCALING);
         float y2 = y1 - w;
-        float y3 = y1 - (18f * SCALING);
-        float y4 = y3 - w;
-        float y5 = y4 - (51f * SCALING);
 
         openGLForMisc();
         glBegin(GL_TRIANGLE_STRIP);
@@ -173,14 +182,13 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
         glVertex2f(x1, y2);
         glVertex2f(x2, y1);
         glVertex2f(x2, y2);
-        glVertex2f(x4, y3);
         glEnd();
         closeGLForMisc();
 
         openGL11ForText();
         TODRAW14.setBaseColor(color);
-        TODRAW14.setText("ALERT");
-        TODRAW14.draw(origin.x + (12f * SCALING), origin.y);
+        TODRAW14.setText("STATUS");
+        TODRAW14.draw(origin.x + (4f * SCALING), origin.y);
         closeGL11ForText();
     }
 
@@ -343,7 +351,10 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
             sprites.put(ship.getHullSpec().getBaseHullId(), sprite);
         }
 
-        renderShip(new Vector2f(nx + innerDim.x * wMult, ny - width), new Vector2f(innerDim.x * wMultI, innerDim.y), sprite, color, ship.getFacing());
+        if (!color.equals(Color.BLACK)) {
+            Color c = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * 0.6f));
+            renderShip(new Vector2f(nx + innerDim.x * wMult, ny - width), new Vector2f(innerDim.x * wMultI, innerDim.y), sprite, c, ship.getFacing());
+        }
     }
 
     private void renderBar(Vector2f origin, Vector2f dim, float fill, Color color) {
