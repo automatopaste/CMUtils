@@ -8,13 +8,11 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.ui.P;
 import org.lazywizard.lazylib.ui.FontException;
 import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CMUCombatPlugin extends BaseEveryFrameCombatPlugin {
@@ -45,7 +43,11 @@ public class CMUCombatPlugin extends BaseEveryFrameCombatPlugin {
     @Override
     public void advance(float amount, List<InputEventAPI> events) {
         CombatUI.hasRendered = false;
+    }
 
+    @Override
+    public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
+        if (true) return;
         if (TODRAW14 == null) return;
 
         Panel.PanelParams panelParams = new Panel.PanelParams();
@@ -98,7 +100,13 @@ public class CMUCombatPlugin extends BaseEveryFrameCombatPlugin {
         Button.ButtonParams buttonParams = new Button.ButtonParams();
         buttonParams.width = 120f;
         buttonParams.height = 24f;
-        Button button = new Button(buttonParams, buttonText);
+        Button.ButtonCallback buttonCallback = new Button.ButtonCallback() {
+            @Override
+            public void onClick() {
+                Global.getCombatEngine().setPaused(!Global.getCombatEngine().isPaused());
+            }
+        };
+        Button button = new Button(buttonParams, buttonText, buttonCallback);
         panel.addChild(button);
 
         Text.TextParams infoParams = new Text.TextParams();
@@ -111,8 +119,7 @@ public class CMUCombatPlugin extends BaseEveryFrameCombatPlugin {
         }, TODRAW14, infoParams);
 //        panel.addChild(infoText);
 
-        panel.processInputEvents(events);
-
-        CMUKitUI.render(panel, new Vector2f(500f, 500f));
+        Vector2f root = new Vector2f(500f, 500f);
+        CMUKitUI.render(panel, root, events);
     }
 }

@@ -123,7 +123,7 @@ public class FleetStatusUIPlugin extends BaseEveryFrameCombatPlugin {
         float oy2 = oy1 - size;
 
         for (InputEventAPI event : events) {
-            if (event.isMouseDownEvent()) {
+            if (event.isMouseDownEvent() && !event.isConsumed()) {
                 for (int i = 0; i < states.length; i++) {
                     boolean b = states[i];
 

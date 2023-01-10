@@ -18,7 +18,7 @@ public class Slider implements Element {
     }
 
     @Override
-    public Vector2f render(float scale, Vector2f loc) {
+    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         float pad = 8f;
         if (scale > 1f) pad *= scale;
 
@@ -47,11 +47,6 @@ public class Slider implements Element {
         glEnd();
 
         return new Vector2f(params.x, params.y);
-    }
-
-    @Override
-    public void processInputEvents(List<InputEventAPI> events) {
-
     }
 
     @Override

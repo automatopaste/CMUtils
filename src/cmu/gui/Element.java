@@ -13,9 +13,7 @@ public interface Element {
      * @param scale screen scale mult
      * @param loc absolute screen coordinates for scissor test
      */
-    Vector2f render(float scale, Vector2f loc);
-
-    void processInputEvents(List<InputEventAPI> events);
+    Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events);
 
     float getWidth();
 

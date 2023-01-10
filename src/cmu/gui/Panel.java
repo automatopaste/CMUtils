@@ -27,7 +27,7 @@ public class Panel implements Element {
     }
 
     @Override
-    public Vector2f render(float scale, Vector2f loc) {
+    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         glBegin(GL_LINE_LOOP);
         glLineWidth(scale);
         glColor(params.color);
@@ -44,45 +44,31 @@ public class Panel implements Element {
 
         glTranslatef(params.edgePad, -params.edgePad, 0f);
 
-        for (Element e : children) {
-            Vector2f v = e.render(scale, loc);
+        Vector2f l2 = new Vector2f(loc);
+        l2.x += params.edgePad;
+        l2.y -= params.edgePad;
 
+        for (Element e : children) {
+            Vector2f v = e.render(scale, l2, events);
+
+            float shift;
             switch (params.mode) {
                 case VERTICAL:
-                    glTranslatef(0f, -params.listPad - v.y, 0f);
+                    shift = -params.listPad - v.y;
+                    glTranslatef(0f, shift, 0f);
+                    l2.y += shift;
                     break;
                 case HORIZONTAL:
-                    glTranslatef(params.listPad + v.x, 0f, 0f);
+                    shift = params.listPad + v.x;
+                    glTranslatef(shift, 0f, 0f);
+                    l2.x += shift;
                     break;
             }
-
-//            glPushMatrix();
-//
-//            switch (params.mode) {
-//                case VERTICAL:
-//                    glTranslatef(0f, offset, 0f);
-//                    e.render();
-//                    offset += e.getHeight();
-//                    break;
-//                case HORIZONTAL:
-//                    glTranslatef(offset, 0f, 0f);
-//                    e.render();
-//                    offset += e.getWidth();
-//                    break;
-//            }
-//
-//            glPopMatrix();
         }
 
         glDisable(GL_SCISSOR_TEST);
 
-        Vector2f dim = new Vector2f(params.x, params.y);
-        return dim;
-    }
-
-    @Override
-    public void processInputEvents(List<InputEventAPI> events) {
-        for (Element e : children) e.processInputEvents(events);
+        return new Vector2f(params.x, params.y);
     }
 
     public void addChild(Element e) {

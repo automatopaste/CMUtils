@@ -1,8 +1,8 @@
 package cmu.plugins;
 
-import cmu.gui.Element;
 import cmu.gui.Panel;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -12,13 +12,13 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class CMUKitUI {
 
-    public static void render(Panel root, Vector2f loc) {
+    public static void render(Panel root, Vector2f loc, List<InputEventAPI> events) {
         openGLForMisc();
 
         glPushMatrix();
         glTranslatef(loc.x, loc.y, 0f);
 
-        root.render(Global.getSettings().getScreenScaleMult(), loc);
+        root.render(Global.getSettings().getScreenScaleMult(), loc, events);
 
         glPopMatrix();
 

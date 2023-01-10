@@ -20,7 +20,7 @@ public class Text implements Element {
     }
 
     @Override
-    public Vector2f render(float scale, Vector2f loc) {
+    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         draw.setText(execute.get());
         draw.setBaseColor(params.color);
         draw.setAlignment(params.align);
@@ -38,11 +38,6 @@ public class Text implements Element {
         }
 
         return new Vector2f(draw.getWidth(), draw.getHeight());
-    }
-
-    @Override
-    public void processInputEvents(List<InputEventAPI> events) {
-
     }
 
     public static final class TextParams {
