@@ -15,6 +15,8 @@ public class CMUKitUI {
     public static void render(Panel root, Vector2f loc, List<InputEventAPI> events) {
         openGLForMisc();
 
+        glLineWidth(2f);
+
         glPushMatrix();
         glTranslatef(loc.x, loc.y, 0f);
 

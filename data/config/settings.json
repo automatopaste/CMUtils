@@ -4,7 +4,7 @@
     "GUIDebug": "cmu.plugins.GUIDebug",
     # "CMUOverlayPlugin": "cmu.plugins.CMUOverlayPlugin",
     "CMUCombatPlugin": "cmu.plugins.CMUCombatPlugin",
-    "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin"
+    # "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin"
   },
 
   "cmu_SubsystemToggleKey": "I",

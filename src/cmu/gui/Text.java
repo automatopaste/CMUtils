@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Text implements Element {
 
-    private final Execute<String> execute;
+    private Execute<String> execute;
     private final LazyFont.DrawableString draw;
     private final TextParams params;
 
@@ -57,5 +57,13 @@ public class Text implements Element {
 
     public TextParams getParams() {
         return params;
+    }
+
+    public void setExecute(Execute<String> execute) {
+        this.execute = execute;
+    }
+
+    public void setColor(Color c) {
+        params.color = c;
     }
 }

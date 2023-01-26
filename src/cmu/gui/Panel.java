@@ -66,6 +66,17 @@ public class Panel implements Element {
             }
         }
 
+        if (params.conformToListSize) {
+            switch (params.mode) {
+                case VERTICAL:
+                    params.y = (loc.y - l2.y) + params.edgePad;
+                    break;
+                case HORIZONTAL:
+                    params.x = (loc.x - l2.x) + params.edgePad;
+                    break;
+            }
+        }
+
         glDisable(GL_SCISSOR_TEST);
 
         return new Vector2f(params.x, params.y);
@@ -86,6 +97,7 @@ public class Panel implements Element {
         public float listPad = 2f;
         public Color color = Color.WHITE;
         public ListMode mode = ListMode.VERTICAL;
+        public boolean conformToListSize = false;
     }
 
     @Override
