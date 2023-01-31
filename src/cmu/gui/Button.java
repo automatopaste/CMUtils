@@ -77,7 +77,7 @@ public class Button implements Element {
             glTranslatef((int) (params.width * 0.5f), (int) (-params.height * 0.5f), 0f);
             text.render(scale, loc, events);
         } else {
-            glTranslatef((int) (pad), (int) (-params.height * 0.5f), 0f);
+            glTranslatef(Math.round(pad), Math.round(-pad), 0f);
             text.render(scale, loc, events);
         }
         glPopMatrix();
