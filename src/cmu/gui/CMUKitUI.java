@@ -1,6 +1,5 @@
 package cmu.gui;
 
-import cmu.gui.Panel;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.opengl.Display;
@@ -19,6 +18,8 @@ public class CMUKitUI {
 
         glPushMatrix();
         glTranslatef(loc.x, loc.y, 0f);
+
+        root.update(Global.getSettings().getScreenScaleMult(), loc, events);
 
         root.render(Global.getSettings().getScreenScaleMult(), loc, events);
 

@@ -33,9 +33,14 @@ public class TextEntryBox implements Element {
     }
 
     @Override
-    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
+    public Vector2f update(float scale, Vector2f loc, List<InputEventAPI> events) {
         processInputEvents(events, loc);
 
+        return new Vector2f(params.width, params.height);
+    }
+
+    @Override
+    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         float pad = 1f;
         if (scale > 1f) pad *= scale;
 

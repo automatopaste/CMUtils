@@ -20,6 +20,14 @@ public class Text implements Element {
     }
 
     @Override
+    public Vector2f update(float scale, Vector2f loc, List<InputEventAPI> events) {
+        draw.setText(execute.get());
+        draw.setAlignment(params.align);
+
+        return new Vector2f(draw.getWidth(), draw.getHeight());
+    }
+
+    @Override
     public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         draw.setText(execute.get());
         draw.setBaseColor(params.color);

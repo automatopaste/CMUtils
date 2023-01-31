@@ -29,9 +29,14 @@ public class Button implements Element {
     }
 
     @Override
-    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
+    public Vector2f update(float scale, Vector2f loc, List<InputEventAPI> events) {
         processInputEvents(events, loc);
 
+        return new Vector2f(params.width, params.height);
+    }
+
+    @Override
+    public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         float pad = 1f;
         if (scale > 1f) pad *= scale;
 
@@ -64,16 +69,20 @@ public class Button implements Element {
             glEnd();
         }
 
+        glEnable(GL_SCISSOR_TEST);
+        glScissor((int) (loc.x + (3f * pad)), (int) (loc.y - params.height + pad), (int) (params.width - (4f * pad)), (int) (params.height - pad));
+
+        glPushMatrix();
         if (text.getParams().align == LazyFont.TextAlignment.CENTER) {
-            glPushMatrix();
             glTranslatef((int) (params.width * 0.5f), (int) (-params.height * 0.5f), 0f);
-
             text.render(scale, loc, events);
-
-            glPopMatrix();
         } else {
+            glTranslatef((int) (pad), (int) (-params.height * 0.5f), 0f);
             text.render(scale, loc, events);
         }
+        glPopMatrix();
+
+        glDisable(GL_SCISSOR_TEST);
 
         return new Vector2f(params.width, params.height);
     }
@@ -94,14 +103,19 @@ public class Button implements Element {
                         event.consume();
                     } else if (event.isMouseUpEvent() && !event.isConsumed()) {
                         isClick = false;
+                        isPressed = false;
                         callback.onClick();
                         event.consume();
                     }
                 }
             }
 
-            if (Mouse.isButtonDown(0)) isPressed = true;
             isArmed = !isClick;
+
+            if (Mouse.isButtonDown(0)) {
+                isPressed = true;
+                isArmed = false;
+            }
         } else {
             isArmed = false;
         }
