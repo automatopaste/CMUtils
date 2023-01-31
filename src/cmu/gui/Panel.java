@@ -19,15 +19,24 @@ public class Panel implements Element {
     }
 
     private final PanelParams params;
+    private final PanelMaker panelMaker;
     private final List<Element> children;
 
-    public Panel(PanelParams params) {
+    public Panel(PanelParams params, PanelMaker panelMaker) {
         this.params = params;
+        this.panelMaker = panelMaker;
         children = new ArrayList<>();
+
+        panelMaker.make(this);
     }
 
     @Override
     public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
+        if (params.update) {
+            children.clear();
+            panelMaker.make(this);
+        }
+
         glBegin(GL_LINE_LOOP);
         glLineWidth(scale);
         glColor(params.color);
@@ -91,6 +100,7 @@ public class Panel implements Element {
     }
 
     public static final class PanelParams {
+        public boolean update = false;
         public float x = 100f;
         public float y = 100f;
         public float edgePad = 4f;
@@ -108,5 +118,13 @@ public class Panel implements Element {
     @Override
     public float getHeight() {
         return params.y;
+    }
+
+    public interface PanelMaker {
+        /**
+         * If params are set to update, clears children and calls every frame
+         * @param panel The panel
+         */
+        void make(Panel panel);
     }
 }

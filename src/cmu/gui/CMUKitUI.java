@@ -1,4 +1,4 @@
-package cmu.plugins;
+package cmu.gui;
 
 import cmu.gui.Panel;
 import com.fs.starfarer.api.Global;
@@ -15,7 +15,7 @@ public class CMUKitUI {
     public static void render(Panel root, Vector2f loc, List<InputEventAPI> events) {
         openGLForMisc();
 
-        glLineWidth(2f);
+        glLineWidth(1f);
 
         glPushMatrix();
         glTranslatef(loc.x, loc.y, 0f);

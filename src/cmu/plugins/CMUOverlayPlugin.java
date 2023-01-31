@@ -75,7 +75,7 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
 
         Panel.PanelParams params = new Panel.PanelParams();
         params.color = Color.GREEN;
-        Panel panel = new Panel(params);
+        Panel panel = new Panel(params, null);
         elements.add(panel);
 
         Text.TextParams tp = new Text.TextParams();
