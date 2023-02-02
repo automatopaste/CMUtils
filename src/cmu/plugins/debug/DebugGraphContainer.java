@@ -112,7 +112,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
 
         // text
         toDraw.setBaseColor(color.darker());
-        String s = String.format("%.0f", max) + "";
+        String s = String.format("%.3f", max) + "";
         toDraw.setText(s.substring(0, 5));
         Vector2f textLoc = new Vector2f(loc);
         textLoc.x -= toDraw.getWidth() - 2f;
