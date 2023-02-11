@@ -28,7 +28,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
         this.capacity = capacity;
         this.height = height;
 
-        data = new CircularQueue<>(120);
+        data = new CircularQueue<>(capacity);
         expired = false;
         autoFormat = false;
     }
@@ -40,7 +40,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
         this.height = height;
 
         autoFormat = true;
-        data = new CircularQueue<>(120);
+        data = new CircularQueue<>(capacity);
         expired = false;
     }
 

@@ -87,7 +87,7 @@ public class DroneAIUtils {
         float rer = (er - control.lr) / Global.getCombatEngine().getElapsedInLastFrame();
         float ar = control.getRp() * er + control.getRd() * rer;
         if (ar > 0f) drone.giveCommand(ShipCommand.TURN_LEFT, null, 0);
-        else drone.giveCommand(ShipCommand.TURN_RIGHT, null, 0);
+        else if (ar < 0f) drone.giveCommand(ShipCommand.TURN_RIGHT, null, 0);
         control.lr = er;
 
         //CMUtils.getGuiDebug().putText(DroneAIUtils.class, "rotation", er + "");
