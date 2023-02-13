@@ -32,6 +32,8 @@ public class Text implements Element {
         draw.setText(execute.get());
         draw.setBaseColor(params.color);
         draw.setAlignment(params.align);
+        draw.setMaxHeight(params.maxHeight);
+        draw.setMaxWidth(params.maxWidth);
 
         switch (params.align) {
             case LEFT:
@@ -51,6 +53,8 @@ public class Text implements Element {
     public static final class TextParams {
         public Color color = Color.WHITE;
         public LazyFont.TextAlignment align = LazyFont.TextAlignment.LEFT;
+        public float maxWidth = Float.MAX_VALUE;
+        public float maxHeight = Float.MAX_VALUE;
     }
 
     @Override

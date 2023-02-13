@@ -114,23 +114,28 @@ public class TextEntryBox implements Element {
         }
 
         if (selected) {
+            Pattern letter = Pattern.compile("[a-zA-z]");
+            Pattern digit = Pattern.compile("\\d");
+            Pattern special = Pattern.compile ("[ :.\\[\\]~-]");
+
             if (Keyboard.isKeyDown(Keyboard.KEY_BACK) && backOld) {
                 if (string.length() > 0) string.deleteCharAt(string.length() - 1);
                 backOld = false;
             } else {
-                for (InputEventAPI event : events) {
-                    if (event.isKeyboardEvent()) {
-                        String c = event.getEventChar() + "";
+                if (string.length() < params.maxChars) {
+                    for (InputEventAPI event : events) {
+                        if (event.isKeyboardEvent() && !event.isConsumed()) {
+                            String c = event.getEventChar() + "";
 
-                        Pattern letter = Pattern.compile("[a-zA-z]");
-                        Pattern digit = Pattern.compile("\\d");
-                        Pattern special = Pattern.compile ("[:.\\[\\]~-]");
+                            Matcher hasLetter = letter.matcher(c);
+                            Matcher hasDigit = digit.matcher(c);
+                            Matcher hasSpecial = special.matcher(c);
 
-                        Matcher hasLetter = letter.matcher(c);
-                        Matcher hasDigit = digit.matcher(c);
-                        Matcher hasSpecial = special.matcher(c);
-
-                        if (hasLetter.find() || hasDigit.find() || hasSpecial.find()) string.append(c);
+                            if (hasLetter.find() || hasDigit.find() || hasSpecial.find()) {
+                                string.append(c);
+                                event.consume();
+                            }
+                        }
                     }
                 }
 
@@ -162,5 +167,6 @@ public class TextEntryBox implements Element {
         public float width = 80f;
         public float height = 40f;
         public String text = "TEXT";
+        public int maxChars = 255;
     }
 }
