@@ -75,19 +75,24 @@ public class Panel implements Element {
 
     @Override
     public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
-        glBegin(GL_LINE_LOOP);
         glLineWidth(scale);
-        glColor(params.color);
 
-        glVertex2f(0f, 0f);
-        glVertex2f(width, 0f);
-        glVertex2f(width, -height);
-        glVertex2f(0f, -height);
+        if (!params.noDeco) {
+            glBegin(GL_LINE_LOOP);
+            glColor(params.color);
 
-        glEnd();
+            glVertex2f(0f, 0f);
+            glVertex2f(width, 0f);
+            glVertex2f(width, -height);
+            glVertex2f(0f, -height);
+
+            glEnd();
+        }
 
         glEnable(GL_SCISSOR_TEST);
         glScissor((int) (loc.x + params.edgePad), (int) (loc.y - height + params.edgePad), (int) (width - (2f * params.edgePad)), (int) (height - params.edgePad));
+
+        glPushMatrix();
 
         glTranslatef(params.edgePad, -params.edgePad, 0f);
 
@@ -113,9 +118,11 @@ public class Panel implements Element {
             }
         }
 
+        glPopMatrix();
+
         glDisable(GL_SCISSOR_TEST);
 
-        return new Vector2f(params.x, params.y);
+        return new Vector2f(width, height);
     }
 
     public void addChild(Element e) {
@@ -135,6 +142,7 @@ public class Panel implements Element {
         public Color color = Color.WHITE;
         public ListMode mode = ListMode.VERTICAL;
         public boolean conformToListSize = false;
+        public boolean noDeco = false;
     }
 
     @Override
