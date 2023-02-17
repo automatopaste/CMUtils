@@ -13,40 +13,40 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 public class DebugGraphContainer implements BaseDebugContainer {
-    private final Queue<Float> data;
+    private final float[] data;
+    private int index = 0;
     private final String label;
     private final int capacity;
     private final float height;
-    private final boolean autoFormat;
+    private boolean autoFormat;
 
     private float max;
+    private float min;
     private boolean expired;
 
-    public DebugGraphContainer(String label, float max, int capacity, float height) {
+    public DebugGraphContainer(String label, float max, float min, int capacity, float height) {
         this.label = label;
         this.max = max;
+        this.min = min;
         this.capacity = capacity;
         this.height = height;
 
-        data = new CircularQueue<>(capacity);
+        data = new float[capacity];
         expired = false;
         autoFormat = false;
     }
 
     public DebugGraphContainer(String label, int capacity, float height) {
-        this.label = label;
-        this.max = 0f;
-        this.capacity = capacity;
-        this.height = height;
-
+        this(label, 0f, 0f, capacity, height);
         autoFormat = true;
-        data = new CircularQueue<>(capacity);
-        expired = false;
     }
 
     public void increment(float next) {
         synchronized (data) {
-            data.add(next);
+            data[index] = next;
+
+            index++;
+            index %= data.length;
         }
     }
 
@@ -78,7 +78,7 @@ public class DebugGraphContainer implements BaseDebugContainer {
         loc.y -= yPad;
         graphHeight += yPad;
 
-        loc.x += 5f;
+        loc.x += 15f;
 
         // background
         Vector2f b = new Vector2f(loc);
@@ -97,25 +97,33 @@ public class DebugGraphContainer implements BaseDebugContainer {
 
         glEnd();
 
-        List<Float> offsets;
+        float[] offsets = new float[data.length];
         synchronized (data) {
-            offsets = new ArrayList<>(data);
+            int gap = data.length - index;
+            System.arraycopy(data, index, offsets, 0, gap);
+            System.arraycopy(data, 0, offsets, gap, index);
         }
 
         if (autoFormat) {
             max = Float.MIN_VALUE;
+            min = Float.MAX_VALUE;
 
             for (float f : offsets) {
-                if (f > max) max = f;
+                max = Math.max(max, f);
+                min = Math.min(min, f);
             }
         }
 
         // text
         toDraw.setBaseColor(color.darker());
-        String s = String.format("%.3f", max) + "";
-        toDraw.setText(s.substring(0, 5));
         Vector2f textLoc = new Vector2f(loc);
-        textLoc.x -= toDraw.getWidth() - 2f;
+        textLoc.x -= toDraw.getWidth() + 4f;
+
+        toDraw.setText(String.format("%.3f", max).substring(0, 5));
+        toDraw.draw(textLoc);
+
+        toDraw.setText(String.format("%.3f", min).substring(0, 5));
+        textLoc.y -= graphHeight - toDraw.getHeight();
         toDraw.draw(textLoc);
 
         // graph
@@ -124,7 +132,6 @@ public class DebugGraphContainer implements BaseDebugContainer {
         glColor(color);
 
         float increment = graphWidth / capacity;
-        increment *= 0.5f;
 
         Vector2f l = new Vector2f(loc);
         l.y -= graphHeight;
@@ -132,7 +139,8 @@ public class DebugGraphContainer implements BaseDebugContainer {
         float y = l.y;
 
         for (float f : offsets) {
-            float h = f / max;
+            float d = max - min;
+            float h = (f - min) / d;
             h *= graphHeight;
             l.y = y + h;
 
@@ -146,19 +154,5 @@ public class DebugGraphContainer implements BaseDebugContainer {
         graphHeight += toDraw.getHeight();
 
         return graphHeight;
-    }
-
-    public static class CircularQueue<E> extends LinkedList<E> {
-        private final int capacity;
-
-        public CircularQueue(int capacity){
-            this.capacity = capacity;
-        }
-
-        @Override
-        public boolean add(E e) {
-            if (size() >= capacity) removeFirst();
-            return super.add(e);
-        }
     }
 }
