@@ -32,6 +32,7 @@ public class DebugTextContainer implements BaseDebugContainer {
         );
         toDraw.setBaseColor(c);
         toDraw.setText(text);
+        toDraw.setMaxWidth(width);
 
         toDraw.draw(loc);
 
