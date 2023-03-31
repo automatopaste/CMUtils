@@ -2,7 +2,7 @@ package cmu.plugins;
 
 import cmu.gui.Element;
 import cmu.gui.Execute;
-import cmu.gui.Panel;
+import cmu.gui.ListPanel;
 import cmu.gui.Text;
 import cmu.misc.Clock;
 import com.fs.starfarer.api.Global;
@@ -22,7 +22,6 @@ import org.lwjgl.util.vector.Vector2f;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -73,10 +72,10 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
         tr = Global.getSettings().getSprite("ui", "panel00_top_right");
         t = Global.getSettings().getSprite("ui", "panel00_top");
 
-        Panel.PanelParams params = new Panel.PanelParams();
+        ListPanel.ListPanelParams params = new ListPanel.ListPanelParams();
         params.color = Color.GREEN;
-        Panel panel = new Panel(params, null);
-        elements.add(panel);
+        ListPanel listPanel = new ListPanel(params, null);
+        elements.add(listPanel);
 
         Text.TextParams tp = new Text.TextParams();
         tp.color = Color.RED;
@@ -86,7 +85,7 @@ public class CMUOverlayPlugin extends BaseEveryFrameCombatPlugin {
                 return "SOME TEXT";
             }
         }, toDraw14, tp);
-        panel.addChild(text);
+        listPanel.addChild(text);
     }
 
     private void run() {

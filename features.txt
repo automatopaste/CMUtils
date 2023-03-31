@@ -24,7 +24,7 @@ Debug GUI:
     -Requires data to be set per-frame, smooth fadeout over 1 second
     -Uses simple keymap system to maintain text in list
     -Flexible graphing tool
-    -Dynamic display panel adjustment with '[' ']' keys
+    -Dynamic display listPanel adjustment with '[' ']' keys
     -Support for custom renderer containers
 Drone Systems:
     -Drone launch and tracking plugin with custom UI widget

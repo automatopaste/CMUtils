@@ -11,20 +11,20 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
-public class Panel implements Element {
+public class ListPanel implements Element {
 
     public enum ListMode {
         VERTICAL,
         HORIZONTAL,
     }
 
-    private final PanelParams params;
+    private final ListPanelParams params;
     private final PanelMaker panelMaker;
     private final List<Element> children;
     private float width;
     private float height;
 
-    public Panel(PanelParams params, PanelMaker panelMaker) {
+    public ListPanel(ListPanelParams params, PanelMaker panelMaker) {
         this.params = params;
         this.panelMaker = panelMaker;
         children = new ArrayList<>();
@@ -133,7 +133,7 @@ public class Panel implements Element {
         return children;
     }
 
-    public static final class PanelParams {
+    public static final class ListPanelParams {
         public boolean update = false;
         public float x = 100f;
         public float y = 100f;
@@ -158,8 +158,8 @@ public class Panel implements Element {
     public interface PanelMaker {
         /**
          * If params are set to update, clears children and calls every frame
-         * @param panel The panel
+         * @param listPanel The panel
          */
-        void make(Panel panel);
+        void make(ListPanel listPanel);
     }
 }
