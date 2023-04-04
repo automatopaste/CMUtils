@@ -11,7 +11,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class CMUKitUI {
 
-    public static void render(ListPanel root, Vector2f loc, List<InputEventAPI> events) {
+    public static void render(Element root, Vector2f loc, List<InputEventAPI> events) {
         openGLForMisc();
 
         glLineWidth(1f);
