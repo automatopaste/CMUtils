@@ -67,6 +67,8 @@ public class GridPanel implements Element {
             glEnd();
         }
 
+        if (children == null || children.length == 0) return new Vector2f(params.x, params.y);
+
         glEnable(GL_SCISSOR_TEST);
         glScissor((int) (loc.x + params.edgePad), (int) (loc.y - params.y + params.edgePad), (int) (params.x - (2f * params.edgePad)), (int) (params.y - params.edgePad));
 
@@ -106,12 +108,12 @@ public class GridPanel implements Element {
 
     @Override
     public float getWidth() {
-        return 0;
+        return params.x;
     }
 
     @Override
     public float getHeight() {
-        return 0;
+        return params.y;
     }
 
     public Element[][] getChildren() {
