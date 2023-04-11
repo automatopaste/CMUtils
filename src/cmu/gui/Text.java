@@ -23,6 +23,8 @@ public class Text implements Element {
     public Vector2f update(float scale, Vector2f loc, List<InputEventAPI> events) {
         draw.setText(execute.get());
         draw.setAlignment(params.align);
+        draw.setMaxHeight(params.maxHeight);
+        draw.setMaxWidth(params.maxWidth);
 
         return new Vector2f(draw.getWidth(), draw.getHeight());
     }
@@ -32,13 +34,13 @@ public class Text implements Element {
         draw.setText(execute.get());
         draw.setBaseColor(params.color);
         draw.setAlignment(params.align);
-        draw.setMaxHeight(params.maxHeight);
-        draw.setMaxWidth(params.maxWidth);
 
         switch (params.align) {
             case LEFT:
             case RIGHT:
-                draw.draw(0f, 0f);
+                float x = loc.x - (int) loc.x;
+                float y = loc.y - (int) loc.y;
+                draw.draw(-x, -y);
                 break;
             case CENTER:
                 float width = draw.getWidth();

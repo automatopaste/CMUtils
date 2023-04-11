@@ -67,8 +67,14 @@ public class ListPanel implements Element {
             }
         }
 
-        if (params.mode == ListMode.HORIZONTAL) width = w + params.edgePad;
-        if (params.mode == ListMode.VERTICAL) height = h + params.edgePad;
+        if (params.conformToListSize) {
+            if (params.mode == ListMode.HORIZONTAL) {
+                width = w + params.edgePad;
+            }
+            if (params.mode == ListMode.VERTICAL) {
+                height = h + params.edgePad;
+            }
+        }
 
         return new Vector2f(w, h);
     }

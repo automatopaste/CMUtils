@@ -33,19 +33,21 @@ public class GridPanel implements Element {
 //        l2.x += params.edgePad;
 //        l2.y -= params.edgePad;
 
-        float dx = params.x / children.length;
-        float dy = params.y / children[0].length;
+        float dx = params.x / children[0].length;
+        float dy = params.y / children.length;
 
-        for (Element[] col : children) {
-            for (Element element : col) {
+        float x0 = l2.x;
+        for (Element[] row : children) {
+            for (Element element : row) {
                 if (element != null) {
                     element.update(scale, l2, events);
                 }
 
-                l2.y -= dy;
+                l2.x += dx;
             }
 
-            l2.x += dx;
+            l2.y -= dy;
+            l2.x = x0;
         }
 
         return new Vector2f(params.x, params.y);
@@ -54,6 +56,19 @@ public class GridPanel implements Element {
     @Override
     public Vector2f render(float scale, Vector2f loc, List<InputEventAPI> events) {
         glLineWidth(scale);
+
+        if (params.background) {
+            glColor(new Color(0f, 0f, 0f, 0.5f));
+
+            glEnable(GL_BLEND);
+            glBegin(GL_TRIANGLE_STRIP);
+            glVertex2f(0f, 0f);
+            glVertex2f(params.x, 0f);
+            glVertex2f(0f, -params.y);
+            glVertex2f(params.x, -params.y);
+            glEnd();
+            glDisable(GL_BLEND);
+        }
 
         if (!params.noDeco) {
             glBegin(GL_LINE_LOOP);
@@ -67,36 +82,44 @@ public class GridPanel implements Element {
             glEnd();
         }
 
-        if (children == null || children.length == 0) return new Vector2f(params.x, params.y);
+        if (children == null || children.length == 0) {
+            return new Vector2f(params.x, params.y);
+        }
 
         glEnable(GL_SCISSOR_TEST);
         glScissor((int) (loc.x + params.edgePad), (int) (loc.y - params.y + params.edgePad), (int) (params.x - (2f * params.edgePad)), (int) (params.y - params.edgePad));
 
         glPushMatrix();
 
-        glTranslatef(params.edgePad, -params.edgePad, 0f);
+        glTranslatef((int) params.edgePad, (int) -params.edgePad, 0f);
 
         Vector2f l2 = new Vector2f(loc);
         l2.x += params.edgePad;
         l2.y -= params.edgePad;
 
-        float dx = params.x / children.length;
-        float dy = params.y / children[0].length;
+        float dx = params.x / children[0].length;
+        float dy = params.y / children.length;
 
-        for (Element[] col : children) {
-            for (Element element : col) {
+        float x0 = l2.x;
+        for (Element[] row : children) {
+            glPushMatrix();
+
+            for (Element element : row) {
                 if (element != null) {
                     element.render(scale, l2, events);
                 }
 
-                float s = dy + 0f; // pad
-                glTranslatef(0f, -s, 0f);
-                l2.y -= s;
+                float s = dx + 0f; // pad
+                glTranslatef(s, 0f, 0f);
+                l2.x += s;
             }
 
-            float s = dx + 0f; // pad
-            glTranslatef(s, 0f, 0f);
-            l2.x += s;
+            glPopMatrix();
+
+            float s = dy + 0f; // pad
+            glTranslatef(0f, -s, 0f);
+            l2.y -= s;
+            l2.x = x0;
         }
 
         glPopMatrix();
@@ -132,6 +155,7 @@ public class GridPanel implements Element {
         public float gridPad = 2f;
         public Color color = Color.WHITE;
         public boolean noDeco = false;
+        public boolean background = true;
     }
 
     public interface PanelMaker {
