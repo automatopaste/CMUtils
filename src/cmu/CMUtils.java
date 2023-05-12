@@ -1,6 +1,7 @@
 package cmu;
 
 import cmu.plugins.GUIDebug;
+import cmu.plugins.renderers.PolygonParticleRenderer;
 import cmu.plugins.renderers.SegmentRenderer;
 import cmu.shaders.BaseParticleRenderer;
 import cmu.plugins.renderers.BattlespaceSpriteParticleRenderer;
@@ -8,14 +9,12 @@ import cmu.plugins.renderers.ImplosionParticleRenderer;
 import cmu.shaders.BaseRenderPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.CombatEngineLayers;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.combat.entities.Ship;
 import org.lazywizard.lazylib.MathUtils;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,7 +32,8 @@ public class CMUtils {
 
     public enum BuiltinParticleRenderers {
         SPRITE,
-        IMPLOSION
+        IMPLOSION,
+        POLYGON
     }
 
     public enum BuiltinRenderers {
@@ -59,7 +59,7 @@ public class CMUtils {
         baseParticleRenderer.cleanup();
     }
 
-    public static BaseParticleRenderer initBuiltinParticleRenderer(BuiltinParticleRenderers builtinParticleRenderers) {
+    public static BaseParticleRenderer initBuiltinParticleRenderer(BuiltinParticleRenderers builtinParticleRenderers, CombatEngineLayers layer) {
         BaseParticleRenderer baseParticleRenderer = null;
         switch (builtinParticleRenderers) {
             case SPRITE:
@@ -68,7 +68,12 @@ public class CMUtils {
             case IMPLOSION:
                 baseParticleRenderer = new ImplosionParticleRenderer();
                 break;
+            case POLYGON:
+                baseParticleRenderer = new PolygonParticleRenderer();
+                break;
         }
+
+        baseParticleRenderer.setLayer(layer);
 
         ACTIVE_PARTICLE_RENDERERS.add(baseParticleRenderer);
         updateRendererCaps();

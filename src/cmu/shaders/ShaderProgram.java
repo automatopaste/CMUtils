@@ -23,10 +23,10 @@ public class ShaderProgram {
                 vertexShaderID = shaderID;
                 break;
             case GL_GEOMETRY_SHADER:
-                fragmentShaderID = shaderID;
+                geometryShaderID = shaderID;
                 break;
             case GL_FRAGMENT_SHADER:
-                geometryShaderID = shaderID;
+                fragmentShaderID = shaderID;
                 break;
             default:
                 throw new NullPointerException("bad");
@@ -98,7 +98,7 @@ public class ShaderProgram {
 
         // Check for errors
         if (glGetShaderi(geometryShaderID, GL_COMPILE_STATUS) == GL_FALSE)
-            throw new RuntimeException("Error creating fragment shader\n"
+            throw new RuntimeException("Error creating geometry shader\n"
                     + glGetShaderInfoLog(geometryShaderID, glGetShaderi(geometryShaderID, GL_INFO_LOG_LENGTH)));
 
         // Attach the shader

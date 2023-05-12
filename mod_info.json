@@ -4,7 +4,7 @@
 	"author":"tomatopaste",
 	"version":"0.3.2",
 	"description":"Collection of miscellaneous utilities for combat modding.",
-	"gameVersion":"0.95.1a-RC6",
+	"gameVersion":"0.96a-RC7",
 	"modPlugin":"cmu.ModPlugin",
 	"jars": ["jars/CMUtils.jar"]
 }

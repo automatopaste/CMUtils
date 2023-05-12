@@ -24,6 +24,7 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
     private ShaderProgram program;
     protected int blendEquation;
     protected int numElements;
+    protected CombatEngineLayers layer;
 
     private int[] bufferVBOs;
 
@@ -80,6 +81,8 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
 
     @Override
     public void render(CombatEngineLayers layer, ViewportAPI viewport) {
+        if (layer != this.layer) return;
+
         glBindVertexArray(vao);
         program.bind();
 
@@ -158,8 +161,6 @@ public abstract class BaseRenderPlugin extends BaseCombatLayeredRenderingPlugin 
     public void setBlendEquation(int blendEquation) {
         this.blendEquation = blendEquation;
     }
-
-    private CombatEngineLayers layer;
 
     @Override
     public float getRenderRadius() {
