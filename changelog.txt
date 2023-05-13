@@ -1,5 +1,11 @@
+v0.4.0
+- removed in-combat softlock screen
+- couple of new renderers
+- standalone gui lib
+- updated for multiplayer support
+
 v0.3.2
--fixed crash from vbo buffer conflict
+- fixed crash from vbo buffer conflict
 
 v0.3.1
--fixed crash related to drone AI null vector
+- fixed crash related to drone AI null vector
