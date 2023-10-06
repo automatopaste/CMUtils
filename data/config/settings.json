@@ -4,7 +4,8 @@
     "GUIDebug": "cmu.plugins.GUIDebug",
     # "CMUOverlayPlugin": "cmu.plugins.CMUOverlayPlugin",
     "CMUCombatPlugin": "cmu.plugins.CMUCombatPlugin",
-    # "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin"
+    # "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin",
+    "RenderDebug": "cmu.plugins.RenderDebug",
   },
 
   "cmu_SubsystemToggleKey": "I",
@@ -30,5 +31,8 @@
     "ui":{
       "spatial":"graphics/CMUtils/gui_graphic.png",
     },
+    "sexy_back":{
+      "sexy_back":"graphics/CMUtils/sexy_back.png",
+    }
   },
 }
