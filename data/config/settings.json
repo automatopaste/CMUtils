@@ -31,8 +31,5 @@
     "ui":{
       "spatial":"graphics/CMUtils/gui_graphic.png",
     },
-    "sexy_back":{
-      "sexy_back":"graphics/CMUtils/sexy_back.png",
-    }
   },
 }
