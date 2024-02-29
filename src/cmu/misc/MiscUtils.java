@@ -13,6 +13,7 @@ import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
+import java.util.Iterator;
 
 public class MiscUtils {
     private static final float UIScaling = Global.getSettings().getScreenScaleMult();

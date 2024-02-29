@@ -145,11 +145,18 @@ public class ForgeTracker extends BaseEveryFrameCombatPlugin {
         boolean suppress = manager.isSuppressDeploymentMessages();
         manager.setSuppressDeploymentMessages(true);
 
+        float launchAngle = 0f;
+        Vector2f launchLocation = mothership.getLocation();
         WeaponSlotAPI launch = getLaunchSlot();
-        float angle = MathUtils.clampAngle(launch.getAngle() + mothership.getFacing());
+        if (launch != null) {
+            launchAngle = launch.getAngle();
+            launchLocation = launch.computePosition(mothership);
+        }
+
+        float angle = MathUtils.clampAngle(launchAngle + mothership.getFacing());
 
         FleetMemberAPI member = Global.getFactory().createFleetMember(FleetMemberType.FIGHTER_WING, spec.getDroneVariant());
-        ShipAPI drone = manager.spawnFleetMember(member, new Vector2f(launch.computePosition(mothership)), angle, 0f);
+        ShipAPI drone = manager.spawnFleetMember(member, new Vector2f(launchLocation), angle, 0f);
 
         drone.setAnimatedLaunch();
 

@@ -20,10 +20,34 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
+ * @author tomatopaste
+ * A few methods in the UTILS section were copied from MagicLib when they were private and inaccessible, in addition
+ * to several static fields at the beginning of the class. References to these methods can probably be replaced with
+ * references to the methods in the original MagicLib UI file.
  *
- * @author Dark.Revenant, Tartiflette, LazyWizard, Snrasha, tomatopaste
- * because jesus christ why are most of these private methods in magiclib
+ * All other code where applicable:
  *
+ * MIT License
+ *
+ * Copyright (c) 2024 tomatopaste
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 public class CombatUI {
@@ -38,7 +62,7 @@ public class CombatUI {
     private static final Vector2f PERCENTBARVEC1 = new Vector2f(21f, 0f); // Just 21 pixel of width of difference.
     private static final Vector2f PERCENTBARVEC2 = new Vector2f(50f, 58f);
 
-    private static float UIscaling = Global.getSettings().getScreenScaleMult();
+    private static final float UIscaling = Global.getSettings().getScreenScaleMult();
 
     private static final String[] alphabet = new String[] {
             "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
@@ -46,6 +70,7 @@ public class CombatUI {
 
     private static final Vector2f DRONE_UI_WIDGET_OFFSET = new Vector2f(Global.getSettings().getFloat("cmu_widgetOffsetX"), Global.getSettings().getFloat("cmu_widgetOffsetY"));
 
+    // Used to determine if the background sprite has been rendered for the spatial ship/drones graph
     public static boolean hasRendered = false;
 
     public static boolean getHasRendered() {
@@ -76,6 +101,12 @@ public class CombatUI {
     ///////////////////////////////////
 
     /**
+     * Draws the status bar for a basic subsystem, imitating the shipsystem UI. If show info mode is enabled, it will
+     * take up an additional UI slot.
+     *
+     * If the subsystem script attempts to render additional HUD elements (e.g. using the renderAuxiliaryStatusBar
+     * method) then they will not have an effect on the output location. This must be predetermined by the input
+     * guiBarCount parameter to make room for them.
      *
      * @author tomatopaste
      * @param ship Player ship
@@ -85,6 +116,11 @@ public class CombatUI {
      * @param stateText Subsystem activity status
      * @param hotkey Hotkey string of key used to activate subsystem
      * @param flavourText A brief description of what the subsystem does
+     * @param showInfoText If the subsystem is in show info mode
+     * @param guiBarCount The number of gui bars this subsystem will use
+     * @param inputLoc the Input location (top left) of the subsystem GUI element
+     * @param rootLoc the Root location of subsystem GUI elements
+     * @return The output location (bottom left) of GUI element
      */
     public static Vector2f drawSubsystemStatus(
             ShipAPI ship,
@@ -262,6 +298,19 @@ public class CombatUI {
         return loc;
     }
 
+    /**
+     * Renders another subsystem HUD element intended for drone subsystems, but can be used for any purpose.
+     * This HUD element has a decorative line and indentation indicating an auxiliary status to a primary subsystem HUD
+     * element.
+     * @param ship Player ship
+     * @param indent Indentation px from input position
+     * @param fillStartX Start position of progress bar
+     * @param fillLength Length of progress bar
+     * @param fillLevel Fill level of progress bar
+     * @param text1 Text 1
+     * @param text2 Text 2
+     * @param inputLoc Input location. This will be modified according to the X indent specified
+     */
     public static void renderAuxiliaryStatusBar(ShipAPI ship, float indent, float fillStartX, float fillLength, float fillLevel, String text1, String text2, Vector2f inputLoc) {
         CombatEngineAPI engine = Global.getCombatEngine();
 
@@ -380,6 +429,14 @@ public class CombatUI {
         glPopAttrib();
     }
 
+    /**
+     * Determines the root location (top left corner) of Subsystem UI elements by calculating total height of all
+     * subsystems on player ship
+     * @param ship Player ship
+     * @param numBars Sum of number of gui slots from all subsystems
+     * @param barHeight Height of an individual bar (DO NOT SCALE WITH UI)
+     * @return Root location
+     */
     public static Vector2f getSubsystemsRootLocation(ShipAPI ship, int numBars, float barHeight) {
         Vector2f loc = new Vector2f(529f, 74f);
         Vector2f.add(loc, getUIElementOffset(ship, ship.getVariant()), loc);
@@ -400,13 +457,23 @@ public class CombatUI {
         return loc;
     }
 
-    private static int getNumWeapons(ShipAPI ship) {
+    /**
+     * Determines the number of weapons appearing the weapon list HUD element of the vanilla UI
+     * @param ship Player ship
+     * @return Number of weapons in active group
+     */
+    public static int getNumWeapons(ShipAPI ship) {
         WeaponGroupAPI groups = ship.getSelectedGroupAPI();
         List<WeaponAPI> weapons = (groups == null) ? null : groups.getWeaponsCopy();
         return (weapons == null) ? 0 : weapons.size();
     }
 
-    private static Vector2f getSubsystemTitleLoc(ShipAPI ship) {
+    /**
+     * Finds the SUBSYSTEM deco element root location
+     * @param ship Player ship
+     * @return Location
+     */
+    public static Vector2f getSubsystemTitleLoc(ShipAPI ship) {
         Vector2f loc = new Vector2f(529f, 72f);
         Vector2f.add(loc, getUIElementOffset(ship, ship.getVariant()), loc);
         loc.scale(UIscaling);
@@ -414,6 +481,12 @@ public class CombatUI {
         return loc;
     }
 
+    /**
+     * Draws the SUBSYSTEM deco element
+     * @param ship Player ship
+     * @param showInfo If the "more info" mode is enabled
+     * @param rootLoc Root location
+     */
     public static void drawSubsystemsTitle(ShipAPI ship, boolean showInfo, Vector2f rootLoc) {
         CombatEngineAPI engine = Global.getCombatEngine();
         if (!ship.equals(engine.getPlayerShip()) || engine.isUIShowingDialog()) return;
@@ -486,46 +559,26 @@ public class CombatUI {
         closeGLForMisc();
     }
 
-    ///////////////////////////////////
-    //                               //
-    //          STATUS BAR           //
-    //                               //
-    ///////////////////////////////////
-
     /**
-     * Draw a third status bar above the Flux and Hull ones on the User Interface.
-     * With a text of the left and the number on the right.
-     *
-     * @param ship Player ship.
-     *
-     * @param fill Filling level of the bar. 0 to 1
-     *
-     * @param innerColor Color of the bar. If null, the vanilla green UI colour will be used.
-     *
-     * @param borderColor Color of the border. If null, the vanilla green UI colour will be used.
-     *
-     * @param secondfill Wider filling like the soft/hard-flux. 0 to 1.
-     *
-     * @param text The text written to the left, automatically cut if too large.
-     *
-     * @param rearText The text displayed on the right.
+     * Used to draw the Pearson Exotronics drone system HUD elements. The same Root location is provided to each
+     * method used to render each individual element, only the Offset is different for each one.
+     * The following methods can be arbitrarily rendered for useful UI indicators of various things.
+     * @param mothership mothership
+     * @param tiles array of booleans indicating which drones are alive
+     * @param extra Number of extra drones available for deployment (may be different to reserve)
+     * @param text1 Text 1
+     * @param text2 Text 2
+     * @param cooldown Forge cooldown
+     * @param reserve Number of drones in reserve
+     * @param reserveMax Maximum number of drones in reserve (max number forge can produce)
+     * @param activeState Drone orders state
+     * @param numStates Number of drones orders states
+     * @param state State name
+     * @param icon State sprite icon
+     * @param drones Map of drone sprites (supports multiple drone sprites)
+     * @param background Background image (default was a Pearson logo)
+     * @param shipSprite Mothership sprite
      */
-    public static void drawSecondUnlimitedInterfaceStatusBar(ShipAPI ship, float fill, Color innerColor, Color borderColor, float secondfill, String text, String rearText) {
-        if (ship != Global.getCombatEngine().getPlayerShip()) {
-            return;
-        }
-
-        if (Global.getCombatEngine().getCombatUI() == null || Global.getCombatEngine().getCombatUI().isShowingCommandUI() || !Global.getCombatEngine().isUIShowingHUD()) {
-            return;
-        }
-
-        addSecondUnlimitedInterfaceStatusBar(ship, fill, innerColor, borderColor, secondfill);
-        if (TODRAW14 != null) {
-            addInterfaceStatusText(ship, text);
-            addInterfaceStatusNumber(ship, rearText);
-        }
-    }
-
     public static void drawDroneSystemStateWidget(
             ShipAPI mothership,
             boolean[] tiles,
@@ -610,7 +663,18 @@ public class CombatUI {
         spatialRender(colour, start, new Vector2f(0f, 0f), spatialDim, background, drones, mothership, shipSprite);
     }
 
-    private static void spatialRender(
+    /**
+     * Renders HUD element of mothership and drones with shields
+     * @param colour HUD Color
+     * @param start Root location
+     * @param offset Offset of HUD element from root location
+     * @param size Size of element
+     * @param background Background sprite
+     * @param drones Drones mapped to their sprite
+     * @param mothership Mothership
+     * @param shipSprite Mothership sprite
+     */
+    public static void spatialRender(
             Color colour,
             Vector2f start,
             Vector2f offset,
@@ -708,6 +772,15 @@ public class CombatUI {
         closeGLForMisc();
     }
 
+    /**
+     * Draws a curved line imitating the shield arc of a ship
+     * @param ship Ship
+     * @param colour Colour
+     * @param zoom Zoom mult
+     * @param center Center loc of ship on hud
+     * @param alpha Alpha mult
+     * @param angleOffset Angle of shield
+     */
     public static void drawShieldArc(ShipAPI ship, Color colour, float zoom, Vector2f center, float alpha, float angleOffset) {
         glColor4f(
                 colour.getRed() / 255f,
@@ -740,6 +813,11 @@ public class CombatUI {
         glDisable(GL_LINE_SMOOTH);
     }
 
+    /**
+     * Unused but useful for UI debugging
+     * @param x X pos
+     * @param y Y pos
+     */
     public static void drawDot(float x, float y) {
         glBegin(GL_TRIANGLE_STRIP);
         glVertex2f(x, y + 4f);
@@ -749,6 +827,10 @@ public class CombatUI {
         glEnd();
     }
 
+    /**
+     * Simple wrapper to make drawing sprites easier (not sure why this was necessary, but it is what it is)
+     * Only requires an input SpriteAPI
+     */
     public static class SpriteDimWrapper {
         public final SpriteAPI sprite;
         public final float width;
@@ -763,7 +845,15 @@ public class CombatUI {
         }
     }
 
-    private static void iconRender(Color colour, SpriteAPI sprite, Vector2f start, Vector2f offset, Vector2f size) {
+    /**
+     * Renders the drone mode icon (but can render any sprite arbitrarily)
+     * @param colour Colour
+     * @param sprite Sprite
+     * @param start Root location
+     * @param offset Offset of HUD element from root location
+     * @param size Dimensions of icon
+     */
+    public static void iconRender(Color colour, SpriteAPI sprite, Vector2f start, Vector2f offset, Vector2f size) {
         if (sprite == null) return;
 
         Vector2f dim = new Vector2f(size);
@@ -780,7 +870,17 @@ public class CombatUI {
         closeGLForMisc();
     }
 
-    private static void stateRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, String text, int num, int active) {
+    /**
+     * Renders a series of hexagons used to indicate an active state out of a series of possible states.
+     * @param colour Colour
+     * @param start Root position
+     * @param offset Offset of HUD element from root location
+     * @param size Dimensions of element (hexagons will be scaled to fit)
+     * @param text Text to render
+     * @param num Number of states (hence number of hexagons)
+     * @param active Index of active state (other hexagons will appear darker)
+     */
+    public static void stateRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, String text, int num, int active) {
         Vector2f dim = new Vector2f(size);
         dim.scale(UIscaling);
         offset.scale(UIscaling);
@@ -878,7 +978,16 @@ public class CombatUI {
         closeGL11ForText();
     }
 
-    private static void reserveRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, int num, int max) {
+    /**
+     * Renders indicator squares as progress up a vertical stack. Used to indicate reserve drone capacity.
+     * @param colour Color
+     * @param start Root location
+     * @param offset Offset of HUD element from root location
+     * @param size Dimensions of HUD element
+     * @param num Number of reserve drones
+     * @param max Maximum number of reserve drones
+     */
+    public static void reserveRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, int num, int max) {
         Vector2f dim = new Vector2f(size);
         dim.scale(UIscaling);
         offset.scale(UIscaling);
@@ -941,6 +1050,13 @@ public class CombatUI {
         closeGL11ForText();
     }
 
+    /**
+     * Renders edge deco
+     * @param colour Colour
+     * @param start Root location
+     * @param offset Offset of HUD element from root location
+     * @param size Dimensions of HUD element
+     */
     private static void decoRender(Color colour, Vector2f start, Vector2f offset, Vector2f size) {
         Vector2f dim = new Vector2f(size);
         dim.scale(UIscaling);
@@ -980,7 +1096,18 @@ public class CombatUI {
         closeGLForMisc();
     }
 
-    private static void statusRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, String text, float fill, float hPad, boolean full) {
+    /**
+     * Draws a cooldown bar with text
+     * @param colour Color
+     * @param start Root location
+     * @param offset Offset from root location
+     * @param size Dimensions of element
+     * @param text Text
+     * @param fill Fill level of progress bar
+     * @param hPad Horizontal padding for element
+     * @param full If the progress bar is full
+     */
+    public static void statusRender(Color colour, Vector2f start, Vector2f offset, Vector2f size, String text, float fill, float hPad, boolean full) {
         Vector2f dim = new Vector2f(size);
         dim.scale(UIscaling);
         offset.scale(UIscaling);
@@ -1137,18 +1264,7 @@ public class CombatUI {
     ///// UTILS /////
 
     /**
-     * Get the UI Element Offset for the Third bar. (Depends of the group
-     * layout, or if the player has some wing)
-     *
-     * @param ship The player ship.
-     * @param variant The variant of the ship.
-     * @return The offset who depends of weapon and wing.
-     */
-    private static Vector2f getInterfaceOffsetFromStatusBars(ShipAPI ship, ShipVariantAPI variant) {
-        return getUIElementOffset(ship, variant);
-    }
-
-    /**
+     * Taken from MagicLib when it was a private method
      * Get the UI Element Offset.
      * (Depends on the weapon groups and wings present)
      *
@@ -1156,7 +1272,7 @@ public class CombatUI {
      * @param variant The variant of the ship.
      * @return the offset.
      */
-    private static Vector2f getUIElementOffset(ShipAPI ship, ShipVariantAPI variant) {
+    public static Vector2f getUIElementOffset(ShipAPI ship, ShipVariantAPI variant) {
         int numEntries = 0;
         final List<WeaponGroupSpec> weaponGroups = variant.getWeaponGroups();
         final List<WeaponAPI> usableWeapons = ship.getUsableWeapons();
@@ -1193,242 +1309,8 @@ public class CombatUI {
         }
     }
 
-
     /**
-     * Draws a small UI bar above the flux bar. The HUD colour change to blue
-     * when the ship is not alive. Bug: When you left the battle, the hud
-     * keep for qew second, no solution found. Bug: Also for other
-     * normal drawBox, when paused, they switch brutally of "colour".
-     *
-     * @param ship Ship concerned (the element will only be drawn if that ship
-     * is the player ship)
-     * @param fill Filling level
-     * @param innerColor Color of the bar. If null, use the vanilla HUD colour.
-     * @param borderColor Color of the border. If null, use the vanilla HUD
-     * colour.
-     * @param secondfill Like the hardflux of the fluxbar. 0 per default.
-     */
-    private static void addSecondUnlimitedInterfaceStatusBar(ShipAPI ship, float fill, Color innerColor, Color borderColor, float secondfill) {
-        float boxWidth = 79;
-        float boxHeight = 7;
-        if (UIscaling > 1f) {
-            boxWidth *= UIscaling;
-            boxHeight *= UIscaling;
-        }
-        final Vector2f element = getInterfaceOffsetFromStatusBars(ship, ship.getVariant());
-        final Vector2f boxLoc = Vector2f.add(new Vector2f(224f, 120f), element, null);
-        final Vector2f shadowLoc = Vector2f.add(new Vector2f(225f, 119f), element, null);
-        if (UIscaling > 1f) {
-            boxLoc.scale(UIscaling);
-            shadowLoc.scale(UIscaling);
-        }
-
-        // Used to properly interpolate between colours
-        float alpha = 1;
-        if (Global.getCombatEngine().isUIShowingDialog()) {
-            alpha = 0.28f;
-        }
-
-        Color innerCol = innerColor == null ? GREENCOLOR : innerColor;
-        Color borderCol = borderColor == null ? GREENCOLOR : borderColor;
-        if (!ship.isAlive()) {
-            innerCol = BLUCOLOR;
-            borderCol = BLUCOLOR;
-        }
-        float hardfill = secondfill < 0 ? 0 : secondfill;
-        hardfill = hardfill > 1 ? 1 : hardfill;
-        int pixelHardfill = (int) (boxWidth * hardfill);
-        pixelHardfill = pixelHardfill <= 3 ? -pixelHardfill : -3;
-
-        int hfboxWidth = (int) (boxWidth * hardfill);
-        int fboxWidth = (int) (boxWidth * fill);
-
-        OpenGLBar(ship, alpha, borderCol, innerCol, fboxWidth, hfboxWidth, boxHeight, boxWidth, pixelHardfill, shadowLoc, boxLoc);
-    }
-
-    /**
-     * Draw the text with the font victor14.
-     * @param ship The player ship
-     * @param text The text to write.
-     */
-    private static void addInterfaceStatusText(ShipAPI ship, String text) {
-        if (ship != Global.getCombatEngine().getPlayerShip()) {
-            return;
-        }
-        if (Global.getCombatEngine().getCombatUI().isShowingCommandUI() || !Global.getCombatEngine().isUIShowingHUD()) {
-            return;
-        }
-        Color borderCol = GREENCOLOR;
-        if (!ship.isAlive()) {
-            borderCol = BLUCOLOR;
-        }
-        float alpha = 1;
-        if (Global.getCombatEngine().isUIShowingDialog()) {
-            alpha = 0.28f;
-        }
-        Color shadowcolour = new Color(Color.BLACK.getRed() / 255f, Color.BLACK.getGreen() / 255f, Color.BLACK.getBlue() / 255f,
-                1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity());
-        Color colour = new Color(borderCol.getRed() / 255f, borderCol.getGreen() / 255f, borderCol.getBlue() / 255f,
-                alpha * (borderCol.getAlpha() / 255f)
-                        * (1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity()));
-
-        final Vector2f boxLoc = Vector2f.add(new Vector2f(176f, 131f),
-                getInterfaceOffsetFromStatusBars(ship, ship.getVariant()), null);
-        final Vector2f shadowLoc = Vector2f.add(new Vector2f(177f, 130f),
-                getInterfaceOffsetFromStatusBars(ship, ship.getVariant()), null);
-
-        openGL11ForText();
-        if (UIscaling > 1f) {
-            TODRAW14.setFontSize(14*UIscaling);
-
-            boxLoc.scale(UIscaling);
-            shadowLoc.scale(UIscaling);
-        }
-        TODRAW14.setText(text);
-        TODRAW14.setMaxWidth(46*UIscaling);
-        TODRAW14.setMaxHeight(14*UIscaling);
-        TODRAW14.setBaseColor(shadowcolour);
-        TODRAW14.draw(shadowLoc);
-        TODRAW14.setBaseColor(colour);
-        TODRAW14.draw(boxLoc);
-        closeGL11ForText();
-
-    }
-
-    /**
-     * Draw number at the right of the percent bar.
-     * @param ship The player ship died or alive.
-     * @param rearText The number NOT displayed, Not bounded per the method to 0 at 999
-     * 999.
-     */
-    private static void addInterfaceStatusNumber(ShipAPI ship, String rearText) {
-        if (ship != Global.getCombatEngine().getPlayerShip()) {
-            return;
-        }
-        if (Global.getCombatEngine().getCombatUI().isShowingCommandUI() || !Global.getCombatEngine().isUIShowingHUD()) {
-            return;
-        }
-
-        Color borderCol = GREENCOLOR;
-        if (!ship.isAlive()) {
-            borderCol = BLUCOLOR;
-        }
-        float alpha = 1;
-        if (Global.getCombatEngine().isUIShowingDialog()) {
-            alpha = 0.28f;
-        }
-        Color shadowColour = new Color(Color.BLACK.getRed() / 255f, Color.BLACK.getGreen() / 255f, Color.BLACK.getBlue() / 255f,
-                1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity());
-        Color colour = new Color(borderCol.getRed() / 255f, borderCol.getGreen() / 255f, borderCol.getBlue() / 255f,
-                alpha * (borderCol.getAlpha() / 255f)
-                        * (1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity()));
-
-        final Vector2f boxLoc = Vector2f.add(new Vector2f(355f, 131f),
-                getInterfaceOffsetFromStatusBars(ship, ship.getVariant()), null);
-        final Vector2f shadowLoc = Vector2f.add(new Vector2f(356f, 130f),
-                getInterfaceOffsetFromStatusBars(ship, ship.getVariant()), null);
-        if (UIscaling > 1f) {
-            boxLoc.scale(UIscaling);
-            shadowLoc.scale(UIscaling);
-        }
-
-        openGL11ForText();
-        TODRAW14.setText(rearText);
-        float width = TODRAW14.getWidth() - 1;
-        TODRAW14.setBaseColor(shadowColour);
-        TODRAW14.draw(shadowLoc.x - width, shadowLoc.y);
-        TODRAW14.setBaseColor(colour);
-        TODRAW14.draw(boxLoc.x - width, boxLoc.y);
-        closeGL11ForText();
-    }
-
-    private static void OpenGLBar(ShipAPI ship, float alpha, Color borderCol, Color innerCol, int fboxWidth, int hfboxWidth, float boxHeight, float boxWidth, int pixelHardfill, Vector2f shadowLoc, Vector2f boxLoc) {
-        final int width = (int) (Display.getWidth() * Display.getPixelScaleFactor());
-        final int height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
-
-        // Set OpenGL flags
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glViewport(0, 0, width, height);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(0, width, 0, height, -1, 1);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glTranslatef(0.01f, 0.01f, 0);
-
-        if (ship.isAlive()) {
-            // Render the drop shadow
-            if (fboxWidth != 0) {
-                glBegin(GL_TRIANGLE_STRIP);
-                glColor4f(Color.BLACK.getRed() / 255f, Color.BLACK.getGreen() / 255f, Color.BLACK.getBlue() / 255f,
-                        1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity());
-                glVertex2f(shadowLoc.x - 1, shadowLoc.y);
-                glVertex2f(shadowLoc.x + fboxWidth, shadowLoc.y);
-                glVertex2f(shadowLoc.x - 1, shadowLoc.y + boxHeight + 1);
-                glVertex2f(shadowLoc.x + fboxWidth, shadowLoc.y + boxHeight + 1);
-                glEnd();
-            }
-        }
-
-        // Render the drop shadow of border.
-        glBegin(GL_LINES);
-        glColor4f(Color.BLACK.getRed() / 255f, Color.BLACK.getGreen() / 255f, Color.BLACK.getBlue() / 255f,
-                1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity());
-        glVertex2f(shadowLoc.x + hfboxWidth + pixelHardfill, shadowLoc.y - 1);
-        glVertex2f(shadowLoc.x + 3 + hfboxWidth + pixelHardfill, shadowLoc.y - 1);
-        glVertex2f(shadowLoc.x + hfboxWidth + pixelHardfill, shadowLoc.y + boxHeight);
-        glVertex2f(shadowLoc.x + 3 + hfboxWidth + pixelHardfill, shadowLoc.y + boxHeight);
-        glVertex2f(shadowLoc.x + boxWidth, shadowLoc.y);
-        glVertex2f(shadowLoc.x + boxWidth, shadowLoc.y + boxHeight);
-
-        // Render the border transparency fix
-        glColor4f(Color.BLACK.getRed() / 255f, Color.BLACK.getGreen() / 255f, Color.BLACK.getBlue() / 255f,
-                1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity());
-        glVertex2f(boxLoc.x + hfboxWidth + pixelHardfill, boxLoc.y - 1);
-        glVertex2f(boxLoc.x + 3 + hfboxWidth + pixelHardfill, boxLoc.y - 1);
-        glVertex2f(boxLoc.x + hfboxWidth + pixelHardfill, boxLoc.y + boxHeight);
-        glVertex2f(boxLoc.x + 3 + hfboxWidth + pixelHardfill, boxLoc.y + boxHeight);
-        glVertex2f(boxLoc.x + boxWidth, boxLoc.y);
-        glVertex2f(boxLoc.x + boxWidth, boxLoc.y + boxHeight);
-
-        // Render the border
-        glColor4f(borderCol.getRed() / 255f, borderCol.getGreen() / 255f, borderCol.getBlue() / 255f,
-                alpha * (1 - Global.getCombatEngine().getCombatUI().getCommandUIOpacity()));
-        glVertex2f(boxLoc.x + hfboxWidth + pixelHardfill, boxLoc.y - 1);
-        glVertex2f(boxLoc.x + 3 + hfboxWidth + pixelHardfill, boxLoc.y - 1);
-        glVertex2f(boxLoc.x + hfboxWidth + pixelHardfill, boxLoc.y + boxHeight);
-        glVertex2f(boxLoc.x + 3 + hfboxWidth + pixelHardfill, boxLoc.y + boxHeight);
-        glVertex2f(boxLoc.x + boxWidth, boxLoc.y);
-        glVertex2f(boxLoc.x + boxWidth, boxLoc.y + boxHeight);
-        glEnd();
-
-        // Render the fill element
-        if (ship.isAlive()) {
-            glBegin(GL_TRIANGLE_STRIP);
-            glColor4f(innerCol.getRed() / 255f, innerCol.getGreen() / 255f, innerCol.getBlue() / 255f,
-                    alpha * (innerCol.getAlpha() / 255f)
-                            * (1f - Global.getCombatEngine().getCombatUI().getCommandUIOpacity()));
-            glVertex2f(boxLoc.x, boxLoc.y);
-            glVertex2f(boxLoc.x + fboxWidth, boxLoc.y);
-            glVertex2f(boxLoc.x, boxLoc.y + boxHeight);
-            glVertex2f(boxLoc.x + fboxWidth, boxLoc.y + boxHeight);
-            glEnd();
-        }
-        glDisable(GL_BLEND);
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glPopAttrib();
-
-    }
-
-    /**
+     * Taken from MagicLib when it was a private method
      * GL11 to start, when you want render text of Lazyfont.
      */
     private static void openGL11ForText() {
@@ -1443,6 +1325,7 @@ public class CombatUI {
     }
 
     /**
+     * Taken from MagicLib when it was a private method
      * GL11 to close, when you want render text of Lazyfont.
      */
     private static void closeGL11ForText() {
@@ -1452,7 +1335,11 @@ public class CombatUI {
         glPopAttrib();
     }
 
-    private static void openGLForMisc() {
+    /**
+     * @author tomatopaste
+     * Sets OpenGL state for rendering in HUD coordinates
+     */
+    public static void openGLForMisc() {
         final int w = (int) (Display.getWidth() * Display.getPixelScaleFactor());
         final int h = (int) (Display.getHeight() * Display.getPixelScaleFactor());
 
@@ -1471,7 +1358,10 @@ public class CombatUI {
         glTranslatef(0.01f, 0.01f, 0);
     }
 
-    private static void closeGLForMisc() {
+    /**
+     * @author tomatopaste
+     */
+    public static void closeGLForMisc() {
         glDisable(GL_BLEND);
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();

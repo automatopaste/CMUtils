@@ -3,6 +3,7 @@ package cmu.misc;
 import cmu.subsystems.BaseSubsystem;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
+import com.fs.starfarer.api.loading.HullModSpecAPI;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +34,8 @@ public final class SpecLoadingUtils {
             float activeTime = catchJsonFloatDefaultZero(row, "activeTime");
             float outTime = catchJsonFloatDefaultZero(row, "outTime");
             float cooldownTime = catchJsonFloatDefaultZero(row, "cooldownTime");
+
+            //float floatData = (float) row.getDouble("floatDataKey");
 
             boolean isToggle = catchJsonBooleanDefaultFalse(row, "isToggle");
             if (isToggle) activeTime = Float.MAX_VALUE;
