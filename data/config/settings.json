@@ -6,7 +6,7 @@
     "CMUCombatPlugin": "cmu.plugins.CMUCombatPlugin",
     # "FleetStatusUIPlugin": "cmu.plugins.FleetStatusUIPlugin",
     "RenderDebug": "cmu.plugins.RenderDebug",
-    "dracula_flow": "cmu.plugins.DRACULAFLOW"
+    # "dracula_flow": "cmu.plugins.DRACULAFLOW"
   },
 
   "cmu_SubsystemToggleKey": "I",
